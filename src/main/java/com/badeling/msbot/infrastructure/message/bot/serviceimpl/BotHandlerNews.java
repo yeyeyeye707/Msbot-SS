@@ -44,7 +44,7 @@ public class BotHandlerNews implements BotHandler {
 
     @Override
     public String help(){
-        return "│   ├── 新闻[订阅/取消订阅/新闻数量]\r\n" +
+        return "│   ├── 新闻[订阅/订阅取消/新闻数量]\r\n" +
                 "│   │   ├── 官网新闻页面消息订阅/取消\r\n" +
                 "│   │   └── 看看最近几条新闻,默认1\r\n";
     }
@@ -60,7 +60,7 @@ public class BotHandlerNews implements BotHandler {
 
         String cmd = m.group(2);
 
-        if(cmd.contains("取消订阅")){
+        if(cmd.contains("订阅取消")){
             if(!userService.aboveManager(request.getUserId())){
                 result.setReply("需要管理员权限");
                 return result;
@@ -89,7 +89,6 @@ public class BotHandlerNews implements BotHandler {
                 current.setQq(request.getGroupId());
                 current.setType((byte) 1);
                 officialNewsListenerRepository.save(current);
-
             }
             result.setReply("订阅成功");
             return result;

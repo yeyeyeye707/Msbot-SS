@@ -25,7 +25,7 @@ create table ms.official_news_listener
     in_valid tinyint null
 );
 
-
+create table flag_listener(qq bigint primary key , in_valid tinyint, msg text, creator bigint);
 
 insert into ms_level_exp (lv, total_exp, need_exp)
 values  (200, 11462335230, 2207026470),
