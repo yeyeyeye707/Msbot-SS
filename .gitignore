@@ -17,6 +17,8 @@ gradle-app.setting
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
-.idea/
+
 *.DS_Store
-bin/
+
+msbot-java/.idea/
+msbot-java/target/

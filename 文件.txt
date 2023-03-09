@@ -9,13 +9,13 @@
     │    │        └── badeling
     │    │            └── msbot
     │    │                ├── MsbotApplication.java
-    │    │                ├── application
-    │    │                │    ├── entity
-    │    │                │    │    ├── MessageResult.java
-    │    │                │    │    └── NoticeResult.java
-    │    │                │    └── service
-    │    │                │        ├── MessageRequestService.java # 消息处理,路由->domain/message
-    │    │                │        └── NoticeRequestService.java # 通知处理,路由->domain/notice
+    │    │                ├── interfaces # 用户(go-cqhttp)接口层
+    │    │                │   ├── assembler
+    │    │                │   │    └── CqhttpResponseAssembler.java
+    │    │                │   ├── dto
+    │    │                │   │    └── CqhttpResponseDto.java
+    │    │                │   └── facade
+    │    │                │       └── CqhttpController.java # cqhttp事件上报接口,路由->application
     │    │                ├── domain
     │    │                │    ├── message
     │    │                │    │    ├── group
@@ -62,13 +62,13 @@
     │    │                │    ├── rban             # q群随机ban人
     │    │                │    ├── user             # 查看请求用户权限
     │    │                │    ├── util             # 杂项,静态函数直接调用
-    │    │                └── interfaces # 对外暴露
-    │    │                    ├── assembler
-    │    │                    │    └── CqhttpResponseAssembler.java
-    │    │                    ├── dto
-    │    │                    │    └── CqhttpResponseDto.java
-    │    │                    └── facade
-    │    │                        └── CqhttpController.java # cqhttp事件上报接口,路由->application
+    │    │                └── application
+    │    │                     ├── entity
+    │    │                     │    ├── MessageResult.java
+    │    │                     │    └── NoticeResult.java
+    │    │                     └── service
+    │    │                         ├── MessageRequestService.java # 消息处理,路由->domain/message
+    │    │                         └── NoticeRequestService.java # 通知处理,路由->domain/notice
     │    └── resources
     │        └── application.properties             #spring boot 配置
     └── test

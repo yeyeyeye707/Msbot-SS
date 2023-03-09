@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  docker-compose-msbot:
+    build:
+      context: msbot-java
+      args:
+        JAR_FILE: msbot.jar
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
