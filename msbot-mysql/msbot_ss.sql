@@ -1,3 +1,5 @@
+-- 烧烧 额外的表
+
 create table ms_level_exp
 (
     lv        int    not null

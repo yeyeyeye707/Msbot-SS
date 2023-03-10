@@ -1,9 +1,11 @@
 package com.badeling.msbot.infrastructure.maplegg.service;
 
+import com.badeling.msbot.infrastructure.config.ConstRepository;
 import com.badeling.msbot.infrastructure.dao.repository.LevelExpRepository;
 import com.badeling.msbot.infrastructure.maplegg.entity.RankResponse;
 import com.badeling.msbot.infrastructure.maplegg.exception.HttpAccessException;
 import com.badeling.msbot.infrastructure.config.MsbotConst;
+import com.badeling.msbot.infrastructure.util.ImgUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,9 +26,15 @@ public class RankService {
     @Autowired
     private LevelExpRepository levelExpRepository;
 
+    @Autowired
+    private ConstRepository constRepository;
+
+    @Autowired
+    private ImgUtil imgUtil;
+
 
     public String getRank(String raw_message) {
-        String characterName = raw_message.replace(MsbotConst.botName, "")
+        String characterName = raw_message.replace(constRepository.getBotName(), "")
                 .replace("联盟", "")
                 .replace(" ", "");
 
@@ -42,7 +50,7 @@ public class RankService {
             return "没找到呀";
         }
 
-        return response.getCharacterData().getCharacterString(levelExpRepository);
+        return response.getCharacterData().getCharacterString(levelExpRepository, constRepository, imgUtil);
     }
 
     private static final Charset charset = StandardCharsets.UTF_8;

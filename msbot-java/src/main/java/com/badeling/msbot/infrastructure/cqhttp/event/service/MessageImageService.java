@@ -1,5 +1,6 @@
 package com.badeling.msbot.infrastructure.cqhttp.event.service;
 
+import com.badeling.msbot.infrastructure.config.ConstRepository;
 import com.badeling.msbot.infrastructure.config.MsbotConst;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.GetImageResult;
 import com.badeling.msbot.infrastructure.cqhttp.api.service.GetImageService;
@@ -21,7 +22,13 @@ public class MessageImageService {
 
 
     @Autowired
-    GetImageService getImageService;
+    private GetImageService getImageService;
+
+    @Autowired
+    private ConstRepository constRepository;
+
+    @Autowired
+    private ImgUtil imgUtil;
 
     public String saveImagesToLocal(String msg) {
         System.out.println(msg);
@@ -60,7 +67,7 @@ public class MessageImageService {
 //                System.out.println(url);
                 try {
                     String imageName = UUID.randomUUID().toString().replaceAll("-", "") + ".jpg";
-                    ImgUtil.download(url, MsbotConst.imageUrl + "save/", imageName);
+                    imgUtil.download(url, constRepository.getImageUrl() + "save/", imageName);
                     sb.append("[CQ:image,file=save/");
                     sb.append(imageName);
                     sb.append("]");

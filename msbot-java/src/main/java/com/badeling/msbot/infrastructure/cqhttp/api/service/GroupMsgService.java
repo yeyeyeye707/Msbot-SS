@@ -1,5 +1,6 @@
 package com.badeling.msbot.infrastructure.cqhttp.api.service;
 
+import com.badeling.msbot.infrastructure.config.ConstRepository;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.GroupMsg;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.GroupMsgList;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.Result;
@@ -9,8 +10,15 @@ import org.springframework.web.client.RestTemplate;
 //https://docs.go-cqhttp.org/api/#发送群消息
 @Service
 public class GroupMsgService {
+    public GroupMsgService(
+            final ConstRepository constRepository
+    ){
+        restTemplate = new RestTemplate();
+        url = constRepository.getFrontEndUrl()  + "/send_group_msg";
+    }
 
-    RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+    private final String url;
 
     /**
      * 发送群消息
@@ -20,7 +28,7 @@ public class GroupMsgService {
      */
     public Result<?> sendGroupMsg(GroupMsg groupMsg) {
         groupMsg.setMessage(groupMsg.getMessage().replaceAll("\\\\", "/"));
-        Result<?> result = restTemplate.postForObject("http://127.0.0.1:5700/send_group_msg", groupMsg, Result.class);
+        Result<?> result = restTemplate.postForObject(url, groupMsg, Result.class);
         System.err.println(result.toString());
         return result;
     }

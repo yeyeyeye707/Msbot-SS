@@ -1,5 +1,6 @@
 package com.badeling.msbot.infrastructure.maplegg.entity;
 
+import com.badeling.msbot.infrastructure.config.ConstRepository;
 import com.badeling.msbot.infrastructure.dao.entity.LevelExp;
 import com.badeling.msbot.infrastructure.dao.repository.LevelExpRepository;
 import com.badeling.msbot.infrastructure.util.ImgUtil;
@@ -28,7 +29,7 @@ public class CharacterData {
     private int level;
 
     @JsonProperty(value = "EXP")
-    private  long exp;
+    private long exp;
 
     @JsonProperty(value = "EXPPercent")
     private double expPercent;
@@ -58,12 +59,12 @@ public class CharacterData {
     @JsonProperty(value = "GraphData")
     private List<GraphData> graph;
 
-    public String getCharacterString(LevelExpRepository levelExpRepository ) {
+    public String getCharacterString(LevelExpRepository levelExpRepository, ConstRepository constRepository, ImgUtil imgUtil) {
         StringBuilder sb = new StringBuilder();
 
         //保存角色图
         try {
-            String imageName = ImgUtil.saveTempImage(imgUrl);
+            String imageName = imgUtil.saveTempImage(imgUrl);
             sb.append("[CQ:image,file=").append(imageName).append("]\r\n");
         } catch (Exception e) {
 
@@ -71,7 +72,7 @@ public class CharacterData {
 
         sb.append("角色：").append(name).append("\r\n");
         sb.append("服务器：").append(server).append("\r\n");
-        String _server = server.substring(0,1);
+        String _server = server.substring(0, 1);
         sb.append("职业：").append(characterClass).append("  (").append(_server).append("区职业第").append(serverClassRank).append("名)\r\n");
         sb.append("等级：").append(level).append('-').append(expPercent).append("%  (").append(_server).append("区第").append(serverRank).append("名)\r\n");
         if (legionLevel != null && legionLevel > 0
@@ -92,12 +93,12 @@ public class CharacterData {
                     .mapToLong(GraphData::getExp)
                     .average();
             LevelExp levelExp = levelExpRepository.getLevelExpBy(level);
-            if(averageOptional.isPresent() && levelExp != null){
+            if (averageOptional.isPresent() && levelExp != null) {
                 double average = averageOptional.getAsDouble();
-                if(average > 0){
+                if (average > 0) {
                     long need = levelExp.getNeedExp() - exp;
-                    sb.append("按照平均努力程度，需要").append(Math.round(need/average)).append("天升级\r\n");
-                }else{
+                    sb.append("按照平均努力程度，需要").append(Math.round(need / average)).append("天升级\r\n");
+                } else {
                     sb.append("摆烂中\r\n");
                 }
             }
@@ -106,8 +107,8 @@ public class CharacterData {
 //                    .filter(GraphData::check)
                     .sorted()
                     .collect(Collectors.toList());
-            if(!expDatas.isEmpty()){
-                String expImg = JfreeChartUtil.createExpBarImg(expDatas, MsbotConst.imageUrl);
+            if (!expDatas.isEmpty()) {
+                String expImg = JfreeChartUtil.createExpBarImg(expDatas, constRepository.getImageUrl());
                 if (expImg != null && !expImg.isEmpty()) {
                     sb.append("[CQ:image,file=").append(expImg).append("]\r\n");
                 } else {

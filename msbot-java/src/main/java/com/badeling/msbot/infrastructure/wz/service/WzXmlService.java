@@ -1,5 +1,6 @@
 package com.badeling.msbot.infrastructure.wz.service;
 
+import com.badeling.msbot.infrastructure.config.ConstRepository;
 import com.badeling.msbot.infrastructure.config.MsbotConst;
 import com.badeling.msbot.infrastructure.dao.entity.MobInfo;
 import com.badeling.msbot.infrastructure.dao.entity.MobName;
@@ -21,6 +22,9 @@ public class WzXmlService {
 
     @Autowired
     private MobNameRepository mobNameRepository;
+
+    @Autowired
+    private ConstRepository constRepository;
 
     public void updateMobInfo(){
         //TODO..
@@ -110,7 +114,7 @@ public class WzXmlService {
             return;
         }
 
-        String path = MsbotConst.imageUrl + "result_img/" + folder + ".img/" + folder + ".img";
+        String path = constRepository.getImageUrl() + "result_img/" + folder + ".img/" + folder + ".img";
         File file = new File(path);
         if(file.exists()){
             File[] files = file.listFiles();

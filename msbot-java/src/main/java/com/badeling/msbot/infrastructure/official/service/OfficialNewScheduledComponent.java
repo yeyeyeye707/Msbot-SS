@@ -40,6 +40,9 @@ public class OfficialNewScheduledComponent {
     @Autowired
     GroupMsgService groupMsgService;
 
+    @Autowired
+    ImgUtil imgUtil;
+
     @Scheduled(cron ="0 */5 * * * *")
     public void check() {
 //        System.out.println("asdasdasdasdasdasdas");
@@ -80,7 +83,7 @@ public class OfficialNewScheduledComponent {
                 if(e.getImgUrl() == null || e.getImgUrl().isEmpty()){
 
                 }else {
-                    String path = ImgUtil.saveTempImage(e.getImgUrl());
+                    String path = imgUtil.saveTempImage(e.getImgUrl());
                     sb.append("[CQ:image,file=").append(path).append("]\r\n");
                     e.setImgPath(path);
                 }

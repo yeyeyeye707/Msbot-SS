@@ -1,11 +1,61 @@
 version: "3.8"
 
 services:
-  docker-compose-msbot:
-    build:
-      context: msbot-java
-      args:
-        JAR_FILE: msbot.jar
-      dockerfile: Dockerfile
+  # mysql 数据库. 官方镜像 mysql 8
+  mysql-8:
+    image: mysql
+    # build: msbot-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - TZ=Asia/Shanghai
+    ports:
+      - "32222:3306"
+    volumes:
+      - ~/msbot/mysql/data:/var/lib/mysql
+      - ~/msbot/mysql/log:/var/log/mysql
+      - ./msbot-mysql/init:/docker-entrypoint-initdb.d/
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  
+  # go-cqhttp 处理qq交互
+  front-end:
+    # image: ghcr.io/mrs4s/go-cqhttp:master
+    build: ./msbot-go-cqhttp
+    restart: on-failure
+    ports:
+      - "8082:5700"
+    volumes:
+      - ./msbot-go-cqhttp/config.yml:/usr/src/cqhttp/config.yml
+      - ./msbot-go-cqhttp/device.json:/usr/src/cqhttp/device.json
+      - ./msbot-go-cqhttp/session.token:/usr/src/cqhttp/session.token
+      # 文件资源
+      - ./msbot-go-cqhttp/data:/usr/src/cqhttp/data
+
+  # java spring-boot 处理业务
+  back-end:
+    depends_on:
+      - mysql-8
+    restart: on-failure
+    build: ./msbot-java
     ports:
       - "8081:8080"
+    environment:
+     # 环境变量, 在application.yml中读取
+      SERVER_PORT: 8080
+      MYSQL_URL: jdbc:mysql://mysql-8:3306/ms?serverTimezone=GMT%2B8&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
+      MYSQL_USER: root
+      MYSQL_PWD: 123456
+      SQL_LOG: false
+
+    # 常量
+      IMAGE_OUT_PUT_FOLDER: /cqhttp.data/images/
+      BOT_NAME: '烧烧'
+      BOT_QQ: 2908840550
+      MASTER_QQ: 724507540
+      MANAGER_QQ: '550578418,724507540'
+      FRONT_END_URL: 'http://front-end:5700'
+    volumes:
+      - .m2:/root/.m2
+      - ./msbot-go-cqhttp/data:/cqhttp.data
+    stdin_open: true
+    tty: true

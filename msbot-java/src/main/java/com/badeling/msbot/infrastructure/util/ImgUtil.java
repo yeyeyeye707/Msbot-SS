@@ -1,6 +1,9 @@
 package com.badeling.msbot.infrastructure.util;
 
+import com.badeling.msbot.infrastructure.config.ConstRepository;
 import com.badeling.msbot.infrastructure.config.MsbotConst;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,15 +15,18 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Repository
 public class ImgUtil {
+    @Autowired
+    private ConstRepository constRepository;
 
-    public static String saveTempImage(String raw_message) throws Exception {
+    public String saveTempImage(String raw_message) throws Exception {
         String imageName = UUID.randomUUID().toString().replaceAll("-", "") + ".jpg";
-        download(raw_message, MsbotConst.imageUrl, imageName);
+        download(raw_message, constRepository.getImageUrl(), imageName);
         return imageName;
     }
 
-    public static void download(String urlString, String savePath, String imageName) throws Exception {
+    public void download(String urlString, String savePath, String imageName) throws Exception {
         // 构造URL
         URL url = new URL(urlString);
         // 打开连接

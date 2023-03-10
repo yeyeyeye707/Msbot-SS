@@ -17,6 +17,13 @@ gradle-app.setting
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
+# docker maven
+.m2
+
+# cqhttp 资源
+msbot-go-cqhttp/data/
+# cqhttp 工程
+msbot-go-cqhttp/go-cqhttp/
 
 *.DS_Store
 

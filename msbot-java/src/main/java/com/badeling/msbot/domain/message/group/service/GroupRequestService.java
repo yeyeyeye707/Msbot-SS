@@ -2,6 +2,7 @@ package com.badeling.msbot.domain.message.group.service;
 
 import com.badeling.msbot.domain.message.group.entity.GroupMessagePostEntity;
 import com.badeling.msbot.domain.message.group.entity.GroupMessageResult;
+import com.badeling.msbot.infrastructure.config.ConstRepository;
 import com.badeling.msbot.infrastructure.config.MsbotConst;
 import com.badeling.msbot.infrastructure.message.handler.service.MessageHandler;
 import com.badeling.msbot.infrastructure.dao.repository.BlackListRepository;
@@ -20,6 +21,9 @@ public class GroupRequestService {
     @Autowired
     private MessageHandlerBotName temp;
 
+    @Autowired
+    private ConstRepository constRepository;
+
     public GroupMessageResult handler(GroupMessagePostEntity request) {
 
         //黑名单拒绝访问
@@ -33,7 +37,7 @@ public class GroupRequestService {
             return null;
         }
 
-        if(msg.startsWith(MsbotConst.botName+" -h")){
+        if (msg.startsWith(constRepository.getBotName() + " -h")) {
             GroupMessageResult result = new GroupMessageResult();
             StringBuilder sb = new StringBuilder();
             sb.append("├── 命令 {参数} [可选参数]\r\n")
