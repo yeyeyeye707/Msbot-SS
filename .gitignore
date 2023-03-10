@@ -17,6 +17,7 @@ gradle-app.setting
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
+.env
 # docker maven
 .m2
 
@@ -24,8 +25,11 @@ gradle-app.setting
 msbot-go-cqhttp/data/
 # cqhttp 工程
 msbot-go-cqhttp/go-cqhttp/
+msbot-go-cqhttp/config.yml
 
 *.DS_Store
 
 msbot-java/.idea/
 msbot-java/target/
+msbot-go-cqhttp/device.json
+msbot-go-cqhttp/session.token

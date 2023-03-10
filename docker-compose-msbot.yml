@@ -6,11 +6,12 @@ services:
     image: mysql
     # build: msbot-mysql
     restart: unless-stopped
+    env_file: ./.env
     environment:
-      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
       - TZ=Asia/Shanghai
     ports:
-      - "32222:3306"
+      - $MYSQLDB_LOCAL_PORT:$MYSQLDB_DOCKER_PORT
     volumes:
       - ~/msbot/mysql/data:/var/lib/mysql
       - ~/msbot/mysql/log:/var/log/mysql
@@ -22,14 +23,15 @@ services:
     # image: ghcr.io/mrs4s/go-cqhttp:master
     build: ./msbot-go-cqhttp
     restart: on-failure
+    env_file: ./.env
     ports:
-      - "8082:5700"
+      - $CQHTTP_LOCAL_PORT:$CQHTTP_DOCKER_PORT
     volumes:
       - ./msbot-go-cqhttp/config.yml:/usr/src/cqhttp/config.yml
       - ./msbot-go-cqhttp/device.json:/usr/src/cqhttp/device.json
       - ./msbot-go-cqhttp/session.token:/usr/src/cqhttp/session.token
       # 文件资源
-      - ./msbot-go-cqhttp/data:/usr/src/cqhttp/data
+      - $CQHTTP_LOCAL_DATA_PATH:/usr/src/cqhttp/data
 
   # java spring-boot 处理业务
   back-end:
@@ -37,25 +39,26 @@ services:
       - mysql-8
     restart: on-failure
     build: ./msbot-java
+    env_file: ./.env
     ports:
-      - "8081:8080"
+      - $SPRING_LOCAL_PORT:$SPRING_DOCKER_PORT
     environment:
      # 环境变量, 在application.yml中读取
-      SERVER_PORT: 8080
-      MYSQL_URL: jdbc:mysql://mysql-8:3306/ms?serverTimezone=GMT%2B8&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
-      MYSQL_USER: root
-      MYSQL_PWD: 123456
+      SERVER_PORT: $SPRING_DOCKER_PORT
+      MYSQL_URL: jdbc:mysql://mysql-8:$MYSQLDB_DOCKER_PORT/ms?serverTimezone=GMT%2B8&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
+      MYSQL_USER: $MYSQLDB_USER
+      MYSQL_PWD: $MYSQLDB_ROOT_PASSWORD
       SQL_LOG: false
 
     # 常量
       IMAGE_OUT_PUT_FOLDER: /cqhttp.data/images/
-      BOT_NAME: '烧烧'
-      BOT_QQ: 2908840550
-      MASTER_QQ: 724507540
-      MANAGER_QQ: '550578418,724507540'
-      FRONT_END_URL: 'http://front-end:5700'
+      FRONT_END_URL: 'http://front-end:$CQHTTP_DOCKER_PORT'
+      BOT_NAME: $BOT_NAME
+      BOT_QQ: $BOT_QQ
+      MASTER_QQ: $MASTER_QQ
+      MANAGER_QQ: $MANAGER_QQ
     volumes:
       - .m2:/root/.m2
-      - ./msbot-go-cqhttp/data:/cqhttp.data
+      - $CQHTTP_LOCAL_DATA_PATH:/cqhttp.data
     stdin_open: true
     tty: true
