@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 @Getter
 public class ConstRepository {
-    @Value("${front-end-url}")
+    @Value("${const.front-end-url}")
     private String frontEndUrl;
 
     @Value("${const.img-folder}")

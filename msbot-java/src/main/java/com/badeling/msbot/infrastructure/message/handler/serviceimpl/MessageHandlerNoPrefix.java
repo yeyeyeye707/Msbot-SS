@@ -32,8 +32,14 @@ public class MessageHandlerNoPrefix implements MessageHandler {
 
     public GroupMessageResult handle(GroupMessagePostEntity message) {
 
-        MsgNoPrefix m = msgNoPrefixRepository.findMsgNP(message.getRawMessage());
-        if(m != null && m.isExact()){
+        var list = msgNoPrefixRepository.findMsgNP(message.getRawMessage());
+        if(list == null || list.isEmpty()){
+            return null;
+        }
+
+        //找到的都回复?
+        var m = list.get(0);
+        if(m.isExact()){
             GroupMsg groupMsg = new GroupMsg();
             groupMsg.setMessage(m.getAnswer());
             groupMsg.setGroup_id(message.getGroupId());
@@ -41,6 +47,8 @@ public class MessageHandlerNoPrefix implements MessageHandler {
             System.err.println(groupMsg.toString());
         }
 
-        return null;
+        GroupMessageResult result = new GroupMessageResult();
+        result.setReply(m.getAnswer());
+        return result;
     }
 }

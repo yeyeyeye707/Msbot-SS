@@ -1,6 +1,8 @@
 package com.badeling.msbot.interfaces.facade;
 
+import com.badeling.msbot.infrastructure.config.ConstRepository;
 import com.badeling.msbot.infrastructure.dao.entity.RankInfo;
+import com.badeling.msbot.infrastructure.dao.repository.MsgNoPrefixRepository;
 import com.badeling.msbot.infrastructure.dao.repository.RankInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,12 @@ public class HealthHttpController {
     @Autowired
     private RankInfoRepository rankInfoRepository;
 
+    @Autowired
+    private ConstRepository constRepository;
+
+    @Autowired
+    private MsgNoPrefixRepository msgNoPrefixRepository;
+
     @GetMapping("rank")
     public List<RankInfo> rank(){
         return rankInfoRepository.findAll();
@@ -25,5 +33,10 @@ public class HealthHttpController {
     @GetMapping("date")
     public String date(){
         return new Date().toString();
+    }
+
+    @GetMapping("test")
+    public Object test(){
+        return msgNoPrefixRepository.findMsgNP("ddd");
     }
 }
