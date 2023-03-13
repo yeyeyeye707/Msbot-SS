@@ -14,6 +14,14 @@ if [ ! -d ~/msbot/mysql  ]; then
   mkdir ~/msbot/mysql
 fi
 
+if [ ! -d ~/msbot/cqhttp  ]; then
+  mkdir ~/msbot/cqhttp
+fi
+
+if [ ! -d ~/msbot/java  ]; then
+  mkdir ~/msbot/java
+fi
+
 echo '重新设置配置 Y/n'
 read input
 if [ $input = 'y' -o $input = 'Y' ]; then
@@ -23,4 +31,5 @@ fi
 
 
 # 起服务
-docker-compose -f docker-compose-msbot.yml build --no-cache
+# docker-compose -f docker-compose-msbot.yml build --no-cache
+docker-compose -f docker-compose-msbot.yml build

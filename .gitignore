@@ -26,10 +26,10 @@ msbot-go-cqhttp/data/
 # cqhttp 工程
 msbot-go-cqhttp/go-cqhttp/
 msbot-go-cqhttp/config.yml
+msbot-go-cqhttp/device.json
+msbot-go-cqhttp/session.token
 
 *.DS_Store
 
 msbot-java/.idea/
 msbot-java/target/
-msbot-go-cqhttp/device.json
-msbot-go-cqhttp/session.token

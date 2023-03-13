@@ -7,10 +7,10 @@ spring:
     url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:32222/ms?serverTimezone=GMT%2B8&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true}
     username: ${MYSQL_USER:root}
     password: ${MYSQL_PWD:123456}
-    hikari:
-      initialization-fail-timeout: 10000
-      #initialization-fail-timeout 这项配置的原因是因为在docker-compose启动时，多线程将任务一起启动，
-      #spring boot项目启动会比mysql快，可能造成连接不上数据库而死掉的问题。
+    # hikari:
+    #   initialization-fail-timeout: 10000
+    #   #initialization-fail-timeout 这项配置的原因是因为在docker-compose启动时，多线程将任务一起启动，
+    #   #spring boot项目启动会比mysql快，可能造成连接不上数据库而死掉的问题。
 
   jpa:
     database: mysql
@@ -28,10 +28,15 @@ spring:
       max-file-size: 20MB
       max-request-size: 1024MB
 
+logging:
+  level:
+    root: INFO
+  file:
+    name: log/logfile.log
 
 const:
   front-end-url: ${FRONT_END_URL:#{'http://127.0.0.1:5700'}}
-  img-folder: ${IMAGE_OUT_PUT_FOLDER:~/msbot/}
+  img-folder: ${IMAGE_OUT_PUT_FOLDER:~/msbot/cqhttp/data/}
   bot-name: ${BOT_NAME:烧烧}
   bot-qq: ${BOT_QQ:123}
   master-qq: ${MASTER_QQ:123}

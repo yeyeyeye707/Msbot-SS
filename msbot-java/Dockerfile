@@ -1,7 +1,17 @@
 # FROM openjdk:17
 FROM maven:3.9.0-eclipse-temurin-17
 
-COPY . .
+ENV HOME=/home/usr/app
+RUN mkdir -p $HOME
+WORKDIR $HOME
+
+ADD pom.xml $HOME
+# COPY /ali-settings.xml /root/.m2/settings.xml
+RUN mvn dependency:go-offline
+# COPY . .
+# RUN mvn clean install
+
+ADD ./src $HOME/src
 RUN mvn clean install
 
 # ARG JAR_FILE
