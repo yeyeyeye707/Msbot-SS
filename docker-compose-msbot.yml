@@ -10,6 +10,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
       - TZ=Asia/Shanghai
+      - LANG=C.UTF-8
     ports:
       - $MYSQLDB_LOCAL_PORT:$MYSQLDB_DOCKER_PORT
     volumes:
@@ -22,16 +23,20 @@ services:
   front-end:
     # image: ghcr.io/mrs4s/go-cqhttp:master
     build: ./msbot-go-cqhttp
+    depends_on:
+      - back-end
     restart: on-failure
     env_file: ./.env
     ports:
       - $CQHTTP_LOCAL_PORT:$CQHTTP_DOCKER_PORT
     volumes:
-      - ./msbot-go-cqhttp/config.yml:/usr/src/cqhttp/config.yml
-      - ./msbot-go-cqhttp/device.json:/usr/src/cqhttp/device.json
-      - ./msbot-go-cqhttp/session.token:/usr/src/cqhttp/session.token
-      # 文件资源
-      - $CQHTTP_LOCAL_DATA_PATH:/usr/src/cqhttp/data
+      # # 登录配置
+      # - ./msbot-go-cqhttp/config.yml:/usr/src/cqhttp/config.yml
+      # - ./msbot-go-cqhttp/device.json:/usr/src/cqhttp/device.json
+      # - ./msbot-go-cqhttp/session.token:/usr/src/cqhttp/session.token
+      # # 文件资源
+      # - $CQHTTP_LOCAL_DATA_PATH:/usr/src/cqhttp/data
+      - $CQHTTP_LOCAL_PATH:/usr/src/cqhttp
     environment:
       TZ: Asia/Shanghai
 

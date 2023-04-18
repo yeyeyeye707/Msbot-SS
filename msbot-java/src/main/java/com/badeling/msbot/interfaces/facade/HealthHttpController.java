@@ -17,18 +17,10 @@ import java.util.List;
 public class HealthHttpController {
 
     @Autowired
-    private RankInfoRepository rankInfoRepository;
-
-    @Autowired
     private ConstRepository constRepository;
 
     @Autowired
     private MsgNoPrefixRepository msgNoPrefixRepository;
-
-    @GetMapping("rank")
-    public List<RankInfo> rank(){
-        return rankInfoRepository.findAll();
-    }
 
     @GetMapping("date")
     public String date(){
@@ -37,6 +29,6 @@ public class HealthHttpController {
 
     @GetMapping("test")
     public Object test(){
-        return msgNoPrefixRepository.findMsgNP("ddd");
+        return constRepository.getBotName();
     }
 }
