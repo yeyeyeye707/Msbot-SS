@@ -1,8 +1,14 @@
 ## 使用编译好的
-FROM ubuntu:22.04
+FROM centos:7
 WORKDIR /usr/src/cqhttp
 
-CMD ./go-cqhttp
+ENV TZ Asia/Shanghai
+
+RUN ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime \
+    && echo ${TZ} > /etc/timezone
+
+CMD ./go-cqhttp -update-protocol -faststart
+# CMD ./go-cqhttp -update-protocol -faststart -D
 
 
 ## 自己编译

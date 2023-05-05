@@ -4,6 +4,7 @@ import com.badeling.msbot.infrastructure.config.ConstRepository;
 import com.badeling.msbot.infrastructure.dao.entity.RankInfo;
 import com.badeling.msbot.infrastructure.dao.repository.MsgNoPrefixRepository;
 import com.badeling.msbot.infrastructure.dao.repository.RankInfoRepository;
+import com.badeling.msbot.infrastructure.maplegg.service.RankService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,9 @@ public class HealthHttpController {
     @Autowired
     private MsgNoPrefixRepository msgNoPrefixRepository;
 
+    @Autowired
+    private RankService rankService;
+
     @GetMapping("date")
     public String date(){
         return new Date().toString();
@@ -30,5 +34,6 @@ public class HealthHttpController {
     @GetMapping("test")
     public Object test(){
         return constRepository.getBotName();
+//        return rankService.getRank("RoaringTank", 46905679L);
     }
 }

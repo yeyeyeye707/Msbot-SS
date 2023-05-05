@@ -70,7 +70,7 @@ public class MessageHandlerRank implements MessageHandler {
         }
 
 
-        String rankInfo = rankService.getRank(name);
+        String rankInfo = rankService.getRank(name, message.getGroupId());
         result.setReply(rankInfo);
         return result;
     }

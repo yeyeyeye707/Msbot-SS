@@ -37,8 +37,6 @@ services:
       # # 文件资源
       # - $CQHTTP_LOCAL_DATA_PATH:/usr/src/cqhttp/data
       - $CQHTTP_LOCAL_PATH:/usr/src/cqhttp
-    environment:
-      TZ: Asia/Shanghai
 
   # java spring-boot 处理业务
   back-end:

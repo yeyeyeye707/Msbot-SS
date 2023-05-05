@@ -5,11 +5,11 @@ import com.badeling.msbot.infrastructure.dao.entity.LevelExp;
 import com.badeling.msbot.infrastructure.dao.repository.LevelExpRepository;
 import com.badeling.msbot.infrastructure.util.ImgUtil;
 import com.badeling.msbot.infrastructure.util.JfreeChartUtil;
-import com.badeling.msbot.infrastructure.config.MsbotConst;
 import com.badeling.msbot.infrastructure.util.NumberSuffixesUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalDouble;
 import java.util.stream.Collectors;
@@ -59,6 +59,39 @@ public class CharacterData {
     @JsonProperty(value = "GraphData")
     private List<GraphData> graph;
 
+    public List<Pair<String, String>> getLeftLabelMap() {
+        String _server = server.charAt(0) + "区";
+
+        List<Pair<String, String>> list = new ArrayList<>();
+
+        list.add( new Pair<>("服务器", server));
+        list.add(new Pair<>("职业", characterClass));
+        list.add(new Pair<>(_server, "职业第%d名".formatted(serverClassRank)));
+        list.add(new Pair<>("等级", "%d-%.2f%%".formatted(level, expPercent)));
+        list.add(new Pair<>(_server, " 第%d名".formatted(serverRank)));
+
+        if (legionLevel != null && legionLevel > 0
+                && legionRank != null && legionRank > 0) {
+            list.add(new Pair<>("联盟等级", Integer.toString(legionLevel)));
+            list.add(new Pair<>(_server, "第%d名".formatted(legionRank)));
+        }
+        if (legionPower != null && legionPower > 0
+                && legionCoinsPerDay != null && legionCoinsPerDay > 0) {
+            list.add(new Pair<>("联盟战力", Long.toString(legionPower)));
+            list.add(new Pair<>("联盟币/D", Integer.toString(legionCoinsPerDay)));
+        }
+
+        return list;
+    }
+
+    public List<GraphData> getGraphDataList(){
+        return graph.stream()
+//                    .filter(GraphData::check)
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    /* 更新排版
     public String getCharacterString(LevelExpRepository levelExpRepository, ConstRepository constRepository, ImgUtil imgUtil) {
         StringBuilder sb = new StringBuilder();
 
@@ -122,4 +155,5 @@ public class CharacterData {
 
         return sb.toString();
     }
+     */
 }
