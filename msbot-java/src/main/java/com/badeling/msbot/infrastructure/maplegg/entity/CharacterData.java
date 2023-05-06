@@ -78,7 +78,7 @@ public class CharacterData {
         if (legionPower != null && legionPower > 0
                 && legionCoinsPerDay != null && legionCoinsPerDay > 0) {
             list.add(new Pair<>("联盟战力", Long.toString(legionPower)));
-            list.add(new Pair<>("联盟币/D", Integer.toString(legionCoinsPerDay)));
+            list.add(new Pair<>("联盟币", "%d/天".formatted(legionCoinsPerDay)));
         }
 
         return list;

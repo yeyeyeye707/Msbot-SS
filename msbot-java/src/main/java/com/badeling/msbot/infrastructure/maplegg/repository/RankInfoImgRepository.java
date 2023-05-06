@@ -94,6 +94,10 @@ public class RankInfoImgRepository {
 
         var image = new BufferedImage(720, 384, BufferedImage.TYPE_3BYTE_BGR);
         var g2d = image.createGraphics();
+
+        //文字抗锯齿
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
         //背景图.
         {
             var bg = getBgImage();
@@ -118,7 +122,7 @@ public class RankInfoImgRepository {
             g2d.drawImage(nameImage, x, y, null);
 
             //字体
-            Font font = new Font(fontName, Font.BOLD, 10);
+            Font font = new Font(fontName, Font.PLAIN, 10);
             g2d.setFont(font);
             FontMetrics metrics = g2d.getFontMetrics(font);
             //画名字
@@ -136,7 +140,7 @@ public class RankInfoImgRepository {
         //左边信息
         {
             //字体
-            Font font = new Font(fontName, Font.BOLD, 18);
+            Font font = new Font(fontName, Font.PLAIN, 18);
             g2d.setFont(font);
             FontMetrics metrics = g2d.getFontMetrics(font);
 
@@ -197,7 +201,7 @@ public class RankInfoImgRepository {
                 long lastDay = 1;
 
                 //字体
-                Font font = new Font(fontName, Font.BOLD, 12);
+                Font font = new Font(fontName, Font.PLAIN, 12);
                 g2d.setFont(font);
                 FontMetrics metrics = g2d.getFontMetrics(font);
 
@@ -228,14 +232,21 @@ public class RankInfoImgRepository {
                 }
 
                 //升级预期
-                topY += metrics.getHeight();
                 var needExp = levelExpRepository.getLevelExpBy(character.getLevel())
                         .getNeedExp();
-                long needDay = (needExp - character.getExp()) / (sum / l);
-                g2d.drawString("按照平均，还需%d天升级".formatted(needDay), topX, topY);
-                topY += metrics.getHeight() + 2;
-                needDay = (needExp - character.getExp()) / lastDay;
-                g2d.drawString("按照最后一天，还需%d天升级".formatted(needDay), topX, topY);
+
+                var average = (sum / l);
+                if (average > 0) {
+                    topY += metrics.getHeight() + 2;
+                    long needDay = (needExp - character.getExp()) / average;
+                    g2d.drawString("按照平均，还需%d天升级".formatted(needDay), topX, topY);
+                }
+
+                if (lastDay > 0) {
+                    topY += metrics.getHeight() + 2;
+                    long needDay = (needExp - character.getExp()) / lastDay;
+                    g2d.drawString("按照最后一天，还需%d天升级".formatted(needDay), topX, topY);
+                }
             }
         }
 
