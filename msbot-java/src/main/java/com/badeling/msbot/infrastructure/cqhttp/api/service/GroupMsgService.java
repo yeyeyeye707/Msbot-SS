@@ -29,7 +29,7 @@ public class GroupMsgService {
     public Result<?> sendGroupMsg(GroupMsg groupMsg) {
         groupMsg.setMessage(groupMsg.getMessage().replaceAll("\\\\", "/"));
         Result<?> result = restTemplate.postForObject(url, groupMsg, Result.class);
-        System.err.println(result.toString());
+//        System.err.println(result.toString());
         return result;
     }
 

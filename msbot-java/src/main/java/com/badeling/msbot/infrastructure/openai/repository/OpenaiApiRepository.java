@@ -40,9 +40,6 @@ public class OpenaiApiRepository {
     @Nullable
     public OpenaiChatCompletionsResponse chat(OpenaiChatCompletionsRequest request) {
 
-//        //对话前文
-//        var request = new OpenaiChatCompletionsRequest();
-//        request.addMessage(true, "Who won the world series in 2020?");
         try {
             String urlString = "https://api.openai.com/v1/chat/completions";
             var url = new URL(urlString);
@@ -59,9 +56,9 @@ public class OpenaiApiRepository {
             connection.setDoOutput(true);
 
             String body = objectMapper.writeValueAsString(request);
+            log.info("Sending payload: {}", body);
 
             OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream(), StandardCharsets.UTF_8);
-            log.debug("Sending payload: {}", body);
             writer.write(body);
             writer.close();
 

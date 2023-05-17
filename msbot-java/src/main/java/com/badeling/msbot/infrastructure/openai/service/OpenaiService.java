@@ -1,5 +1,7 @@
 package com.badeling.msbot.infrastructure.openai.service;
 
+import com.badeling.msbot.infrastructure.cqhttp.api.entity.PrivateMsg;
+import com.badeling.msbot.infrastructure.cqhttp.api.service.PrivateMsgService;
 import com.badeling.msbot.infrastructure.dao.entity.OpenaiChat;
 import com.badeling.msbot.infrastructure.dao.repository.OpenaiChatRepository;
 import com.badeling.msbot.infrastructure.openai.entity.ChatMessage;
@@ -7,6 +9,7 @@ import com.badeling.msbot.infrastructure.openai.entity.OpenaiChatCompletionsRequ
 import com.badeling.msbot.infrastructure.openai.repository.OpenaiApiRepository;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,14 +27,18 @@ public class OpenaiService {
 
     private final ChatMessage.JpaConverterJson chatMessageListConverter;
 
+    private final PrivateMsgService privateMsgService;
+
     public OpenaiService(
             final OpenaiChatRepository openaiChatRepository,
-            final OpenaiApiRepository openaiApiRepository
+            final OpenaiApiRepository openaiApiRepository,
+            final PrivateMsgService privateMsgService
     ) {
         this.userChattingMap = new HashMap<>();
         this.openaiChatRepository = openaiChatRepository;
         this.openaiApiRepository = openaiApiRepository;
         this.chatMessageListConverter = new ChatMessage.JpaConverterJson();
+        this.privateMsgService = privateMsgService;
     }
 
     /**
@@ -65,7 +72,7 @@ public class OpenaiService {
         return chat;
     }
 
-    public void endStart(Long qq){
+    public void endStart(Long qq) {
         //内存中已存在
         if (!userChattingMap.containsKey(qq)) {
             return;
@@ -78,14 +85,15 @@ public class OpenaiService {
         userChattingMap.remove(qq);
     }
 
-    public boolean canChat(Long qq){
+    public boolean canChat(Long qq) {
         return userChattingMap.containsKey(qq);
     }
 
     @Nullable
-    public String chat(Long qq, String content) {
+    @Async("asyncExecutor")
+    public void chat(Long qq, String content) {
         if (!userChattingMap.containsKey(qq)) {
-            return null;
+            return;
         }
 
         var last = userChattingMap.get(qq);
@@ -104,14 +112,17 @@ public class OpenaiService {
             var retVal = response.getChoices().get(0).getMessage();
             chatMessages.add(retVal);
 
+            //qq聊天
+            var msg = new PrivateMsg();
+            msg.setUser_id(qq);
+            msg.setMessage(retVal.getContent());
+            privateMsgService.sendPrivateMsg(msg);
+
             //保存
             var id = last.getId();
             var c = chatMessageListConverter.convertToDatabaseColumn(chatMessages);
             openaiChatRepository.updateChat(id, c);
-
-            return retVal.getContent();
         }
-        return null;
     }
 
 }

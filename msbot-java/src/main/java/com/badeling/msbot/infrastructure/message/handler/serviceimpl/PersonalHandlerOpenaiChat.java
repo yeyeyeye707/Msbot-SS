@@ -27,13 +27,14 @@ public class PersonalHandlerOpenaiChat implements PersonalHandler {
 
     @Override
     public PersonMessageResult handle(PersonMessageEntity request) {
+        openaiService.chat(request.getUserId(), request.getRawMessage());
 
-        String content = openaiService.chat(request.getUserId(), request.getRawMessage());
-        if (content != null) {
-            var result = new PersonMessageResult();
-            result.setReply(content);
-            return result;
-        }
+//        String content = openaiService.chat(request.getUserId(), request.getRawMessage());
+//        if (content != null) {
+//            var result = new PersonMessageResult();
+//            result.setReply(content);
+//            return result;
+//        }
         return null;
     }
 }
