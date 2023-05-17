@@ -23,7 +23,7 @@ public class PrivateMsgService {
     public Result<?> sendPrivateMsg(PrivateMsg privateMsg) {
         privateMsg.setMessage(privateMsg.getMessage().replaceAll("\\\\", "/"));
         Result<?> result = restTemplate.postForObject(url, privateMsg, Result.class);
-        System.err.println(result.toString());
+//        System.err.println(result.toString());
         return result;
     }
 }

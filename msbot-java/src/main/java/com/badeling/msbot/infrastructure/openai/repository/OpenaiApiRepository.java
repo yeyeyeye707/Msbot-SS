@@ -56,7 +56,7 @@ public class OpenaiApiRepository {
             connection.setDoOutput(true);
 
             String body = objectMapper.writeValueAsString(request);
-            log.info("Sending payload: {}", body);
+//            log.info("Sending payload: {}", body);
 
             OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream(), StandardCharsets.UTF_8);
             writer.write(body);

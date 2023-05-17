@@ -5,6 +5,8 @@ ENV HOME=/home/usr/clash/master
 WORKDIR $HOME
 
 ENV TZ Asia/Shanghai
+
+# https://github.com/wanhebin/clash-for-linux
 ADD master_23.05.17/ /home/usr/clash/master/
 
 RUN yum -y install wget
