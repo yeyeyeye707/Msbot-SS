@@ -33,3 +33,9 @@ msbot-go-cqhttp/session.token
 
 msbot-java/.idea/
 msbot-java/target/
+msbot-java/log/
+
+# clash for linux
+# https://github.com/wanhebin/clash-for-linux
+clash-docker/logs/
+clash-docker/master_23.05.17

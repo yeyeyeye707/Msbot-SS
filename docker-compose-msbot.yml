@@ -63,8 +63,26 @@ services:
       BOT_QQ: $BOT_QQ
       MASTER_QQ: $MASTER_QQ
       MANAGER_QQ: $MANAGER_QQ
+      PROXY_HOSTNAME: clash-docker
+      PROXY_PORT: $CLASH_HTTP_DOCKER_PORT
+      OPENAI_AUTH: $OPENAI_AUTH
+      OPENAI_QQ: $OPENAI_QQ
     volumes:
       - .m2:/root/.m2
       - $CQHTTP_LOCAL_DATA_PATH:/cqhttp.data
+      - ./msbot-java/log:/home/usr/app/log
+    stdin_open: true
+    tty: true
+
+  # clash 代理
+  clash-docker:
+    build: ./clash-docker
+    env_file: ./.env
+    ports:
+      - $CLASH_DASHBOARD_LOCAL_PORT:$CLASH_DASHBOARD_DOCKER_PORT
+      - $CLASH_HTTP_LOCAL_PORT:$CLASH_HTTP_DOCKER_PORT
+      - $CLASH_SOCK5_LOCAL_PORT:$CLASH_SOCK5_DOCKER_PORT
+    volumes:
+      - ./clash-docker/logs:/home/usr/clash/master/logs
     stdin_open: true
     tty: true

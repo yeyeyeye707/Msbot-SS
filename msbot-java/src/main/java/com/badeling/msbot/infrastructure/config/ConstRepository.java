@@ -29,4 +29,17 @@ public class ConstRepository {
 
     @Value("#{'${const.manager-qq}'.split(',')}")
     private List<Long> managerQQ;
+
+    @Value("${const.proxy-hostname}")
+    private String proxyHostname;
+
+    @Value("${const.proxy-port}")
+    private Integer proxyPort;
+
+    @Value("${const.openai-auth}")
+    private String openaiAuth;
+
+
+    @Value("#{'${const.openai-user}'.split(',')}")
+    private List<Long> openaiUser;
 }

@@ -971,6 +971,11 @@ LOCK TABLES `role_dmg` WRITE;
 UNLOCK TABLES;
 
 
+create table openai_chat(id bigint auto_increment primary key ,
+ qq bigint, chat json, in_valid tinyint,
+ create_ts datetime default CURRENT_TIMESTAMP not null,
+ update_ts  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP);
+
 -- /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 -- /*!50606 SET GLOBAL INNODB_STATS_AUTO_RECALC=@OLD_INNODB_STATS_AUTO_RECALC */;
 
