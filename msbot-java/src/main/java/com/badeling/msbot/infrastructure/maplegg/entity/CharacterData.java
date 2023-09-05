@@ -85,6 +85,10 @@ public class CharacterData {
     }
 
     public List<GraphData> getGraphDataList(){
+        if(graph == null){
+            return List.of();
+        }
+
         return graph.stream()
 //                    .filter(GraphData::check)
                 .sorted()

@@ -9,6 +9,7 @@ import com.badeling.msbot.infrastructure.dao.repository.OfficialNewsRepository;
 import com.badeling.msbot.infrastructure.official.entity.NewsEntity;
 import com.badeling.msbot.infrastructure.util.ImgUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +44,8 @@ public class OfficialNewScheduledComponent {
     @Autowired
     ImgUtil imgUtil;
 
-    @Scheduled(cron ="0 */5 * * * *")
+//    @Scheduled(cron ="0 */5 * * * *")
+    @Async
     public void check() {
 //        System.out.println("asdasdasdasdasdasdas");
         List<NewsEntity> webEntities = getNewEntitiesFromWeb();
