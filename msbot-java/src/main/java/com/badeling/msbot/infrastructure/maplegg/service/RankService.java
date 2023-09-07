@@ -14,8 +14,8 @@ public class RankService {
     private RankInfoMsgRepository rankInfoMsgRepository;
 
 
-    public String getRank(String raw_message, Long groupId) {
-        String characterName = raw_message.replace(constRepository.getBotName(), "")
+    public String getRank(String name, Long groupId) {
+        String characterName = name.replace(constRepository.getBotName(), "")
                 .replace("联盟", "")
                 .replace(" ", "");
 

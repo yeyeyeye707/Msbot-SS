@@ -1,13 +1,13 @@
 package com.badeling.msbot.infrastructure.cqhttp.event.service;
 
 import com.badeling.msbot.infrastructure.config.ConstRepository;
-import com.badeling.msbot.infrastructure.config.MsbotConst;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.GetImageResult;
 import com.badeling.msbot.infrastructure.cqhttp.api.service.GetImageService;
 import com.badeling.msbot.infrastructure.util.ImgUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,8 +30,14 @@ public class MessageImageService {
     @Autowired
     private ImgUtil imgUtil;
 
+    /**
+     * 图片存本地,并且替换地址
+     *
+     * @param msg 收到的消息
+     * @return 可以用来发送的消息
+     */
     public String saveImagesToLocal(String msg) {
-        System.out.println(msg);
+//        System.out.println(msg);
 
         StringBuilder sb = new StringBuilder();
         String imgData;
@@ -82,5 +88,23 @@ public class MessageImageService {
         sb.append(msg);
 
         return sb.toString();
+    }
+
+    /**
+     * 查看消息中是否存在图片
+     *
+     * @param msg 收到的消息
+     * @return 图片名
+     */
+    public Optional<String> getImageName(String msg) {
+        if (msg.contains(MSG_IMG_TYPE)) {
+            var m = MSG_IMG_FILE_PATTERN.matcher(msg);
+            if (m.find()) {
+                var file = m.group(1);
+                return Optional.of(file);
+            }
+        }
+
+        return Optional.empty();
     }
 }

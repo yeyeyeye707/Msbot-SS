@@ -131,3 +131,28 @@ values  (200, 11462335230, 2207026470),
         (298, 6669556312202714, 1372487622172806),
         (299, 8042043934375520, 2058731433259209),
         (300, 10100775367634729, 0);
+
+
+create table ms.repeat_time
+(
+    user_id   bigint                             ,
+    group_id  bigint                             ,
+    count     int                                ,
+    create_ts datetime default CURRENT_TIMESTAMP ,
+    update_ts datetime default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    constraint repeat_time_pk
+        primary key (user_id, group_id)
+);
+
+create table ms.repeat_sentence
+(
+    group_id  bigint                             not null,
+    user_id   bigint                             not null,
+    count     int                                null,
+    msg       text                               null,
+    create_ts datetime default current_timestamp null,
+    update_ts datetime default current_timestamp null on update current_timestamp,
+    constraint repeat_sentence_pk
+        primary key (group_id, user_id)
+);
+
