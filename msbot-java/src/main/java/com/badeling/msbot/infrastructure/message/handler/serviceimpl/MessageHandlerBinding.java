@@ -5,23 +5,27 @@ import com.badeling.msbot.domain.message.group.entity.GroupMessageResult;
 import com.badeling.msbot.infrastructure.dao.entity.RankInfo;
 import com.badeling.msbot.infrastructure.dao.repository.RankInfoRepository;
 import com.badeling.msbot.infrastructure.message.handler.service.MessageHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 @Service
 @Order(0)
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MessageHandlerBinding implements MessageHandler {
-    @Autowired
-    private RankInfoRepository rankInfoRepository;
+
+    private final RankInfoRepository rankInfoRepository;
+
+
     @Override
     public boolean canHandle(String msg) {
         return msg.startsWith("查询绑定");
     }
 
     @Override
-    public String help(){
-        return  "├── 查询绑定 {角色名}\r\n" +
+    public String help() {
+        return "├── 查询绑定 {角色名}[#1|#2]\r\n" +
                 "│   └── 绑定联盟查询命令对应角色名字\r\n";
     }
 
@@ -32,17 +36,35 @@ public class MessageHandlerBinding implements MessageHandler {
         String characterName = message.getRawMessage()
                 .substring(4)
                 .replace(" ", "");
-        if(characterName.equals("")) {
+        if (characterName.equals("")) {
             replyMsg.setReply("笨蛋，你得告诉我绑定的id啊");
-        }else {
+        } else {
             String uid = String.valueOf(message.getUserId());
+
+            //删除已有
             RankInfo rankInfo = rankInfoRepository.getInfoByUserId(uid);
-            if(rankInfo!=null) {
+            if (rankInfo != null) {
                 rankInfoRepository.delete(rankInfo);
             }
+
+            //指定渲染
+            var sharpIdx = characterName.indexOf("#");
+            Integer render = null;
+            if (sharpIdx > 0) {
+                try {
+                    render = Integer.parseInt(characterName.substring(sharpIdx + 1));
+                    characterName = characterName.substring(0, sharpIdx);
+                } catch (Exception ex) {
+                    replyMsg.setReply("#命令错误,");
+                    return replyMsg;
+                }
+            }
+
+            //保存
             RankInfo ri = new RankInfo();
             ri.setUser_id(uid);
             ri.setUser_name(characterName);
+            ri.setRender_set(render);
             rankInfoRepository.save(ri);
             replyMsg.setReply("绑定成功");
         }

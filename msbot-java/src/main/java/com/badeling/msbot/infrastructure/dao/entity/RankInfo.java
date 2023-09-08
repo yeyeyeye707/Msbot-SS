@@ -12,4 +12,5 @@ public class RankInfo {
 	private Long id;
 	private String user_id;
 	private String user_name;
+	private Integer render_set;
 }

@@ -2,10 +2,12 @@ package com.badeling.msbot.infrastructure.message.handler.serviceimpl;
 
 import com.badeling.msbot.domain.message.group.entity.GroupMessagePostEntity;
 import com.badeling.msbot.domain.message.group.entity.GroupMessageResult;
+import com.badeling.msbot.infrastructure.config.ConstRepository;
 import com.badeling.msbot.infrastructure.dao.entity.RankInfo;
 import com.badeling.msbot.infrastructure.dao.repository.RankInfoRepository;
 import com.badeling.msbot.infrastructure.maplegg.service.RankService;
 import com.badeling.msbot.infrastructure.message.handler.service.MessageHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
@@ -15,14 +17,16 @@ import java.util.regex.Pattern;
 
 @Service
 @Order(1)
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MessageHandlerRank implements MessageHandler {
     private static Pattern AT_QQ_P = Pattern.compile("\\[CQ:at,qq=(\\d+)\\]");
 
-    @Autowired
-    private RankInfoRepository rankInfoRepository;
 
-    @Autowired
-    private RankService rankService;
+    private final RankInfoRepository rankInfoRepository;
+
+    private final RankService rankService;
+
+    private final ConstRepository constRepository;
 
     @Override
     public boolean canHandle(String msg) {
@@ -30,8 +34,8 @@ public class MessageHandlerRank implements MessageHandler {
     }
 
     @Override
-    public String help(){
-        return  "├── 联盟查询[角色名/@某人]\r\n" +
+    public String help() {
+        return "├── 联盟查询[角色名/@某人]\r\n" +
                 "│   ├── 查询角色努力程度,可以指定角色名\r\n" +
                 "│   ├── 未指定时 查询自身绑定的角色\r\n" +
                 "│   └── 指定@某人时 查询该成员绑定角色\r\n";
@@ -41,37 +45,43 @@ public class MessageHandlerRank implements MessageHandler {
     public GroupMessageResult handle(GroupMessagePostEntity message) {
         GroupMessageResult result = new GroupMessageResult();
         String msg = message.getRawMessage()
-                .replace(" ","")
+                .replace(" ", "")
                 .substring(4);
 
         //根据qq号绑定找？
         String uid = null;
-        if(msg.isEmpty()){
+        if (msg.isEmpty()) {
             uid = String.valueOf(message.getUserId());
-        }else{
+        } else {
             Matcher m = AT_QQ_P.matcher(msg);
-            if(m.find()){
+            if (m.find()) {
                 uid = m.group(1);
             }
         }
 
+        // 特殊渲染
+        Integer render = null;
+
         //找到角色名字
         String name;
-        if(uid == null || uid.isEmpty()){
-            name = msg;
-        }else{
+        if (uid == null || uid.isEmpty()) {
+            name = msg.replace(constRepository.getBotName(), "")
+                    .replace("联盟", "")
+                    .replace(" ", "");
+        } else {
             RankInfo rankInfo = rankInfoRepository.getInfoByUserId(uid);
-            if(rankInfo==null) {
+            if (rankInfo == null) {
                 result.setReply("请先绑定角色\r\n" +
                         "例如：查询绑定lFor");
                 return result;
             }
             name = rankInfo.getUser_name();
+            render = rankInfo.getRender_set();
         }
 
+        rankService.getRank(name, message.getGroupId(), render);
 
-        String rankInfo = rankService.getRank(name, message.getGroupId());
-        result.setReply(rankInfo);
+        result.setReply("努力查询中.");
         return result;
     }
 }

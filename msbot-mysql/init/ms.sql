@@ -7,6 +7,33 @@ CREATE DATABASE /*!32312 IF NOT EXISTS*/ `ms` /*!40100 DEFAULT CHARACTER SET utf
 
 USE `ms`;
 
+-- 复读机
+DROP TABLE IF EXISTS `repeat_time`;
+create table ms.repeat_time
+(
+    user_id   bigint                             ,
+    group_id  bigint                             ,
+    count     int                                ,
+    create_ts datetime default CURRENT_TIMESTAMP ,
+    update_ts datetime default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    constraint repeat_time_pk
+        primary key (user_id, group_id)
+);
+
+
+DROP TABLE IF EXISTS `repeat_sentence`;
+create table ms.repeat_sentence
+(
+    group_id  bigint                             not null,
+    user_id   bigint                             not null,
+    count     int                                null,
+    msg       text                               null,
+    create_ts datetime default current_timestamp null,
+    update_ts datetime default current_timestamp null on update current_timestamp,
+    constraint repeat_sentence_pk
+        primary key (group_id, user_id)
+);
+
 --
 -- Table structure for table `flag_listener`
 --
@@ -876,6 +903,7 @@ CREATE TABLE `rank_info` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` varchar(255) DEFAULT NULL,
   `user_name` varchar(255) DEFAULT NULL,
+  `render_set` int DEFAULT null,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
