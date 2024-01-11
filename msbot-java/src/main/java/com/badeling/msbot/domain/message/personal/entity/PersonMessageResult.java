@@ -1,9 +1,13 @@
 package com.badeling.msbot.domain.message.personal.entity;
 
 import com.badeling.msbot.application.entity.MessageResult;
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class PersonMessageResult extends MessageResult {
     String reply;
 
