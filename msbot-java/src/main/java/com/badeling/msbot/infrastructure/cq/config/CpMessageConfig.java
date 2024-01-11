@@ -23,8 +23,8 @@ public class CpMessageConfig {
 //    }
 
     @Bean
-    public CqMessageBuildService cqMessageBuildService() {
-//        CqMessageEntityShamrock.FOLDER_PATH = imageFolder + '/';
+    public CqMessageBuildService cqMessageBuildService(@Value("${const.img-folder}") String imageFolder) {
+        CqMessageEntityShamrock.FOLDER_PATH = imageFolder + '/';
         return CqMessageEntityShamrock::new;
     }
 }

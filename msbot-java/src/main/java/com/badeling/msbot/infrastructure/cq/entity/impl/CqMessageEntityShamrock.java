@@ -3,6 +3,7 @@ package com.badeling.msbot.infrastructure.cq.entity.impl;
 import com.badeling.msbot.infrastructure.cq.entity.CqMessageEntity;
 
 public class CqMessageEntityShamrock implements CqMessageEntity {
+    public static String FOLDER_PATH = null;
     private final StringBuilder sb;
     private boolean autoEscape;
 
@@ -28,12 +29,14 @@ public class CqMessageEntityShamrock implements CqMessageEntity {
         return this;
     }
 
-
+    //https://yuyue-amatsuki.github.io/OpenShamrock/message/media.html
     @Override
     public CqMessageEntityShamrock image(String filePath) {
         if (filePath != null && !filePath.isEmpty()) {
-            //https://yuyue-amatsuki.github.io/OpenShamrock/message/media.html
-            sb.append("[CQ:image,file=").append(filePath).append(']');
+            //Shamrock 不再支持相对路径.
+            //https://github.com/whitechi73/OpenShamrock/blob/fdd769d9ffd486cec3b2f5d141af5a1b869a0f71/xposed/src/main/java/moe/fuqiuluo/shamrock/utils/FileUtils.kt#L54
+//            sb.append("[CQ:image,file=").append(filePath).append(']');
+            sb.append("[CQ:image,file=file://").append(FOLDER_PATH).append(filePath).append(']');
             autoEscape = false;
         }
         return this;

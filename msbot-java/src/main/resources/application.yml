@@ -46,7 +46,8 @@ logging:
 
 const:
   front-end-url: ${FRONT_END_URL:#{'http://127.0.0.1:5700'}}
-  img-folder: ${IMAGE_OUT_PUT_FOLDER:~/msbot/cqhttp/data}
+#  img-folder: ${IMAGE_OUT_PUT_FOLDER:~/msbot/cqhttp/data}
+  img-folder: ${IMAGE_OUT_PUT_FOLDER:/sdcard/ss/images}
   bot-name: ${BOT_NAME:烧烧}
   bot-qq: ${BOT_QQ:123}
   master-qq: ${MASTER_QQ:123}
