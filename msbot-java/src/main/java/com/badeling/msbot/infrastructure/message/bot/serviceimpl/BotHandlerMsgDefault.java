@@ -1,39 +1,53 @@
 package com.badeling.msbot.infrastructure.message.bot.serviceimpl;
 
+import com.badeling.msbot.common.Tuple2;
 import com.badeling.msbot.domain.message.group.entity.GroupMessagePostEntity;
-import com.badeling.msbot.domain.message.group.entity.GroupMessageResult;
+import com.badeling.msbot.infrastructure.cq.entity.CqMessageEntity;
+import com.badeling.msbot.infrastructure.cq.service.CqMessageBuildService;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.GroupMsgList;
 import com.badeling.msbot.infrastructure.cqhttp.api.service.GroupMsgService;
 import com.badeling.msbot.infrastructure.dao.entity.Msg;
 import com.badeling.msbot.infrastructure.dao.repository.MsgRepository;
 import com.badeling.msbot.infrastructure.message.bot.service.BotHandler;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 @Service
 public class BotHandlerMsgDefault implements BotHandler {
-    private String[] UNKOWN_IMG = {
-            "[CQ:image,file=img/buzhidao1.gif]",
-            "[CQ:image,file=img/buzhidao2.gif]",
-            "[CQ:image,file=img/buzhidao3.png]",
-            "[CQ:image,file=img/buzhidao4.png]",
-            "[CQ:image,file=img/buzhidao5.png]"
-    };
     @Autowired
-    MsgRepository msgRepository;
+    public BotHandlerMsgDefault(
+            MsgRepository msgRepository,
+            GroupMsgService groupMsgService,
+            CqMessageBuildService cqMessageBuildService
+    ) {
+        this.msgRepository = msgRepository;
+        this.groupMsgService = groupMsgService;
+        this.cqMessageBuildService = cqMessageBuildService;
+        this.UNKOWN_IMG = Stream.of(
+                        "img/buzhidao1.gif",
+                        "buzhidao2.gif",
+                        "buzhidao3.png",
+                        "buzhidao4.png",
+                        "buzhidao5.png"
+                ).map(img -> cqMessageBuildService.create().image(img))
+                .toArray(CqMessageEntity[]::new);
+        this.random = new Random();
+    }
 
-    @Autowired
-    GroupMsgService groupMsgService;
+    final MsgRepository msgRepository;
+    final GroupMsgService groupMsgService;
+    final CqMessageBuildService cqMessageBuildService;
 
-    private final Random random = new Random();
+    private final CqMessageEntity[] UNKOWN_IMG;
+    private final Random random;
 
 
-    Pattern pattern = Pattern.compile(".*");
+    private static final Pattern pattern = Pattern.compile(".*");
 
     @Override
     public Pattern getPattern() {
@@ -46,39 +60,17 @@ public class BotHandlerMsgDefault implements BotHandler {
     }
 
     @Override
-    public int getOrder(){
+    public int getOrder() {
         return 999;
     }
 
     @Override
-    public GroupMessageResult handler(GroupMessagePostEntity request, Matcher m) {
+    public Tuple2<CqMessageEntity, Boolean> handler(GroupMessagePostEntity request, Matcher m) {
         String msg = m.group();
         if (msg == null || msg.isEmpty()) {
             return randomUnknown();
         }
 
-        //让数据库做这个.
-//        Set<Msg> msgs = msgRepository.findMsgLocateQuestion(msg, msg.length());
-//        if (msgs == null || msgs.isEmpty()) {
-//            return randomUnknown();
-//        }
-//
-//        //找相互包含的 最接近的.
-//        Iterator<Msg> i = msgs.iterator();
-//        Msg m, closest = null;
-//        int min = Integer.MAX_VALUE;
-//        for (int dif, length = msg.length(); i.hasNext() && min > 0; ) {
-//            m = i.next();
-//            if (m != null && m.getQuestion() != null) {
-//                dif = m.getQuestion().length() - length;
-//                if (dif >= min) {
-//                    continue;
-//                }
-//
-//                min = dif;
-//                closest = m;
-//            }
-//        }
         Msg closest = msgRepository.findMsgLocateQuestion(msg, msg.length());
 
         if (closest == null) {
@@ -86,11 +78,13 @@ public class BotHandlerMsgDefault implements BotHandler {
         }
 
         //回复
-        GroupMessageResult result = new GroupMessageResult();
-        result.setReply(closest.getAnswer());
+        var entity = cqMessageBuildService.create();
+        entity.notAutoEscape()
+                .text(closest.getAnswer());
 
         //有额外需要说的
-        if(closest.getLink() != null){
+        if (closest.getLink() != null) {
+            //TODO..
             GroupMsgList msgList = new GroupMsgList();
             msgList.setGroup_id(new Long[]{request.getGroupId()});
             msgList.setAuto_escape(false);
@@ -98,15 +92,11 @@ public class BotHandlerMsgDefault implements BotHandler {
             groupMsgService.sendGroupMsgList(msgList);
         }
 
-        return result;
+        return Tuple2.of(entity, false);
     }
 
-    private GroupMessageResult randomUnknown() {
-        GroupMessageResult result = new GroupMessageResult();
-
+    private Tuple2<CqMessageEntity, Boolean> randomUnknown() {
         int r = random.nextInt(UNKOWN_IMG.length);
-
-        result.setReply(UNKOWN_IMG[r]);
-        return result;
+        return Tuple2.of(UNKOWN_IMG[r], false);
     }
 }

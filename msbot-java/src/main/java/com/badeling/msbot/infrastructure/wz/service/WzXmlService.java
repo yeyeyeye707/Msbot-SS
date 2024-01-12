@@ -1,7 +1,7 @@
 package com.badeling.msbot.infrastructure.wz.service;
 
 import com.badeling.msbot.infrastructure.config.ConstRepository;
-import com.badeling.msbot.infrastructure.config.MsbotConst;
+import com.badeling.msbot.infrastructure.cq.service.CqMessageBuildService;
 import com.badeling.msbot.infrastructure.dao.entity.MobInfo;
 import com.badeling.msbot.infrastructure.dao.entity.MobName;
 import com.badeling.msbot.infrastructure.dao.repository.MobInfoRepository;
@@ -26,29 +26,32 @@ public class WzXmlService {
     @Autowired
     private ConstRepository constRepository;
 
-    public void updateMobInfo(){
+    @Autowired
+    private CqMessageBuildService cqMessageBuildService;
+
+    public void updateMobInfo() {
         //TODO..
     }
 
-    public String searchMobById(String mob_id){
+    public String searchMobById(String mob_id) {
         MobInfo mobInfo = mobInfoRepository.findMobInfoByMobId(mob_id);
         MobName mobName = mobNameRepository.findByMobId(mob_id);
-        return buildReply(mobInfo,mobName);
+        return buildReply(mobInfo, mobName);
     }
 
-    public String searchMobByName(String name){
+    public String searchMobByName(String name) {
         List<MobName> mobNames = mobNameRepository.findByName(name);
         StringBuilder r = new StringBuilder();
         MobInfo mobInfo;
-        for(MobName n : mobNames){
-             mobInfo = mobInfoRepository.findMobInfoByMobId(n.getMobId());
-            r.append(buildReply(mobInfo,n));
+        for (MobName n : mobNames) {
+            mobInfo = mobInfoRepository.findMobInfoByMobId(n.getMobId());
+            r.append(buildReply(mobInfo, n));
         }
         return r.toString();
     }
 
-    private String buildReply(MobInfo mobInfo, MobName mobName){
-        if(mobInfo == null || mobName == null){
+    private String buildReply(MobInfo mobInfo, MobName mobName) {
+        if (mobInfo == null || mobName == null) {
             return "";
         }
 
@@ -77,24 +80,29 @@ public class WzXmlService {
                 .append("经验:").append(mobInfo.getExp()).append("\r\n")
                 .append("冰雷火毒圣暗物").append("\r\n");
 
-        if(mobInfo.getElemAttr()==null) {
+        if (mobInfo.getElemAttr() == null) {
             reply.append("○○○○○○○");
-        }else {
+        } else {
             String attr = mobInfo.getElemAttr();
-            Map<String,String> attrMap = new HashMap<>();
-            attrMap.put("I", "○");attrMap.put("L", "○");attrMap.put("F", "○");attrMap.put("S", "○");
-            attrMap.put("H", "○");attrMap.put("D", "○");attrMap.put("P", "○");
+            Map<String, String> attrMap = new HashMap<>();
+            attrMap.put("I", "○");
+            attrMap.put("L", "○");
+            attrMap.put("F", "○");
+            attrMap.put("S", "○");
+            attrMap.put("H", "○");
+            attrMap.put("D", "○");
+            attrMap.put("P", "○");
 
-            int index=0;
-            while(index<attr.length()) {
-                if(attr.charAt(index + 1) == '1') {
-                    attrMap.put(attr.substring(index,index+1), "×");
-                }else if(attr.charAt(index + 1) == '2') {
-                    attrMap.put(attr.substring(index,index+1), "△");
-                }else if(attr.charAt(index + 1) == '3') {
-                    attrMap.put(attr.substring(index,index+1), "◎");
+            int index = 0;
+            while (index < attr.length()) {
+                if (attr.charAt(index + 1) == '1') {
+                    attrMap.put(attr.substring(index, index + 1), "×");
+                } else if (attr.charAt(index + 1) == '2') {
+                    attrMap.put(attr.substring(index, index + 1), "△");
+                } else if (attr.charAt(index + 1) == '3') {
+                    attrMap.put(attr.substring(index, index + 1), "◎");
                 }
-                index = index+2;
+                index = index + 2;
                 System.out.println(index);
             }
             reply.append(attrMap.get("I"))
@@ -106,26 +114,23 @@ public class WzXmlService {
                     .append(attrMap.get("P"));
         }
 
-        return  reply.toString();
+        return reply.toString();
     }
 
-    private void appedImg(StringBuilder reply, String folder){
-        if(folder == null || folder.isEmpty()){
+    private void appedImg(StringBuilder reply, String folder) {
+        if (folder == null || folder.isEmpty()) {
             return;
         }
 
-        String path = constRepository.getImageUrl() + "result_img/" + folder + ".img/" + folder + ".img";
+        var f = "result_img/" + folder + ".img/" + folder + ".img";
+        String path = constRepository.getImageUrl() + f;
         File file = new File(path);
-        if(file.exists()){
+        if (file.exists()) {
             File[] files = file.listFiles();
-            if(files != null && files.length > 0){
-                reply.append("[CQ:image,file=result_img/")
-                        .append(folder)
-                        .append(".img/")
-                        .append(folder)
-                        .append(".img/")
-                        .append(files[0].getName())
-                        .append("]");
+            if (files != null && files.length > 0) {
+                var e = cqMessageBuildService.create()
+                        .image(f + "/" + files[0].getName());
+                reply.append(e.getMessage());
             }
         }
     }

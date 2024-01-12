@@ -1,11 +1,15 @@
 package com.badeling.msbot.infrastructure.message.handler.serviceimpl;
 
+import com.badeling.msbot.common.Tuple2;
+import com.badeling.msbot.domain.message.exception.IlleagleUserException;
 import com.badeling.msbot.domain.message.group.entity.GroupMessagePostEntity;
-import com.badeling.msbot.domain.message.group.entity.GroupMessageResult;
 import com.badeling.msbot.infrastructure.config.ConstRepository;
+import com.badeling.msbot.infrastructure.cq.entity.CqMessageEntity;
+import com.badeling.msbot.infrastructure.cq.service.CqMessageBuildService;
 import com.badeling.msbot.infrastructure.message.bot.service.BotHandler;
 import com.badeling.msbot.infrastructure.message.handler.service.MessageHandler;
-import com.badeling.msbot.infrastructure.config.MsbotConst;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
@@ -16,13 +20,21 @@ import java.util.regex.Matcher;
 public class MessageHandlerBotName implements MessageHandler {
 
     private final BotHandler[] handlers;
+    private final CqMessageBuildService cqMessageBuildService;
     private final String name;
     private final String qq;
 
-    public MessageHandlerBotName(BotHandler[] handlers, ConstRepository constRepository) {
+    @Autowired
+    public MessageHandlerBotName(BotHandler[] handlers, ConstRepository constRepository, CqMessageBuildService cqMessageBuildService) {
         this.handlers = handlers;
+        this.cqMessageBuildService = cqMessageBuildService;
+
         this.name = constRepository.getBotName();
-        this.qq = "[CQ:at,qq=" + constRepository.getBotQQ() + "]";
+
+        var e = cqMessageBuildService.create()
+                .atQQ(constRepository.getBotQQ());
+
+        this.qq = e.getMessage();
     }
 
     @Override
@@ -42,7 +54,7 @@ public class MessageHandlerBotName implements MessageHandler {
     }
 
     @Override
-    public GroupMessageResult handle(GroupMessagePostEntity message) {
+    public Tuple2<CqMessageEntity, Boolean> handle(GroupMessagePostEntity message) {
         String msg = message.getRawMessage()
                 .replace(name, "")
                 .replace(qq, "");
@@ -50,7 +62,12 @@ public class MessageHandlerBotName implements MessageHandler {
         for (BotHandler h : handlers) {
             m = h.getPattern().matcher(msg);
             if (m.find()) {
-                return h.handler(message, m);
+                try {
+                    return h.handler(message, m);
+                } catch (IlleagleUserException ex) {
+                    var entity = cqMessageBuildService.create();
+                    return Tuple2.of(entity.text(ex.getMessage()), true);
+                }
             }
         }
 

@@ -22,7 +22,7 @@ public class ConstRepository {
     private String botName;
 
     @Value("${const.bot-qq}")
-    private String botQQ;
+    private Long botQQ;
 
     @Value("${const.master-qq}")
     private Long masterQQ;

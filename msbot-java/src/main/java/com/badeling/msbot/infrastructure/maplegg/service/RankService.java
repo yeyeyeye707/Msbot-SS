@@ -1,6 +1,7 @@
 package com.badeling.msbot.infrastructure.maplegg.service;
 
-import com.badeling.msbot.infrastructure.cqhttp.api.entity.GroupMsg;
+import com.badeling.msbot.infrastructure.cq.mapper.CqMessageMapper;
+import com.badeling.msbot.infrastructure.cq.service.CqMessageBuildService;
 import com.badeling.msbot.infrastructure.cqhttp.api.service.GroupMsgService;
 import com.badeling.msbot.infrastructure.maplegg.entity.RankResponse;
 import com.badeling.msbot.infrastructure.maplegg.exception.HttpAccessException;
@@ -20,26 +21,23 @@ public class RankService {
 
 
     private final MapleGGApiRepository mapleGGApiRepository;
-
     private final RankInfoImgRepository[] rankInfoImgRepositories;
     private final RankInfoImgRepositoryDefault rankInfoImgRepositoryDefault;
-
     private final GroupMsgService groupMsgService;
+    private final CqMessageBuildService cqMessageBuildService;
+    private final CqMessageMapper cqMessageMapper;
 
 
     @Async("asyncExecutor")
     public void getRank(String characterName, Long groupId, Integer render) {
-        GroupMsg msg = new GroupMsg();
-        msg.setGroup_id(groupId);
-        msg.setAuto_escape(false);
-        StringBuilder sb = new StringBuilder();
+        var cq = cqMessageBuildService.create();
 
 
         RankResponse response;
         try {
             response = mapleGGApiRepository.requestDataResponse(characterName);
             if (response == null || response.getCharacterData() == null) {
-                sb.append("没找到呀");
+                cq.text("没找到呀");
             } else {
 
                 String image = null;
@@ -57,17 +55,17 @@ public class RankService {
                     image = rankInfoImgRepositoryDefault.saveImg(response.getCharacterData());
                 }
 
-                sb.append("联盟查询:").append(characterName).append("\r\n");
-                sb.append("[CQ:image,file=").append(image).append("]\r\n");
+                cq.text("联盟查询:").text(characterName).changeLine();
+                cq.image(image).changeLine();
             }
         } catch (HttpAccessException e) {
-            sb.append(characterName)
-                    .append("查询角色不存在");
+            cq.text(characterName).text("查询角色不存在");
         }
 
-
-        msg.setMessage(sb.toString());
-        groupMsgService.sendGroupMsg(msg);
+        var msg = cqMessageMapper.toGroupMsg(cq, groupId);
+        if (msg != null) {
+            groupMsgService.sendGroupMsg(msg);
+        }
     }
 }
 

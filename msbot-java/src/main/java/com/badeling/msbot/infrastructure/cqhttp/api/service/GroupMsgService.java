@@ -1,20 +1,23 @@
 package com.badeling.msbot.infrastructure.cqhttp.api.service;
 
 import com.badeling.msbot.infrastructure.config.ConstRepository;
+import com.badeling.msbot.infrastructure.cq.mapper.CqMessageMapper;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.GroupMsg;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.GroupMsgList;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.Result;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 //https://docs.go-cqhttp.org/api/#发送群消息
 @Service
 public class GroupMsgService {
+    @Autowired
     public GroupMsgService(
             final ConstRepository constRepository
-    ){
+    ) {
         restTemplate = new RestTemplate();
-        url = constRepository.getFrontEndUrl()  + "/send_group_msg";
+        url = constRepository.getFrontEndUrl() + "/send_group_msg";
     }
 
     private final RestTemplate restTemplate;

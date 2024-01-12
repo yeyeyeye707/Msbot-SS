@@ -1,8 +1,10 @@
 package com.badeling.msbot.infrastructure.message.handler.serviceimpl;
 
+import com.badeling.msbot.common.Tuple2;
 import com.badeling.msbot.domain.message.group.entity.GroupMessagePostEntity;
-import com.badeling.msbot.domain.message.group.entity.GroupMessageResult;
 import com.badeling.msbot.infrastructure.config.ConstRepository;
+import com.badeling.msbot.infrastructure.cq.entity.CqMessageEntity;
+import com.badeling.msbot.infrastructure.cq.service.CqMessageBuildService;
 import com.badeling.msbot.infrastructure.dao.entity.RankInfo;
 import com.badeling.msbot.infrastructure.dao.repository.RankInfoRepository;
 import com.badeling.msbot.infrastructure.maplegg.service.RankService;
@@ -19,7 +21,7 @@ import java.util.regex.Pattern;
 @Order(1)
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MessageHandlerRank implements MessageHandler {
-    private static Pattern AT_QQ_P = Pattern.compile("\\[CQ:at,qq=(\\d+)\\]");
+    private static final Pattern AT_QQ_P = Pattern.compile("\\[CQ:at,qq=(\\d+)\\]");
 
 
     private final RankInfoRepository rankInfoRepository;
@@ -27,6 +29,7 @@ public class MessageHandlerRank implements MessageHandler {
     private final RankService rankService;
 
     private final ConstRepository constRepository;
+    private final CqMessageBuildService cqMessageBuildService;
 
     @Override
     public boolean canHandle(String msg) {
@@ -42,11 +45,11 @@ public class MessageHandlerRank implements MessageHandler {
     }
 
     @Override
-    public GroupMessageResult handle(GroupMessagePostEntity message) {
-        GroupMessageResult result = new GroupMessageResult();
+    public Tuple2<CqMessageEntity, Boolean> handle(GroupMessagePostEntity message) {
         String msg = message.getRawMessage()
                 .replace(" ", "")
                 .substring(4);
+        var entity = cqMessageBuildService.create();
 
         //根据qq号绑定找？
         String uid = null;
@@ -71,9 +74,7 @@ public class MessageHandlerRank implements MessageHandler {
         } else {
             RankInfo rankInfo = rankInfoRepository.getInfoByUserId(uid);
             if (rankInfo == null) {
-                result.setReply("请先绑定角色\r\n" +
-                        "例如：查询绑定lFor");
-                return result;
+                return Tuple2.of(entity.text("请先绑定角色").changeLine().text("例如：查询绑定lFor"), false);
             }
             name = rankInfo.getUser_name();
             render = rankInfo.getRender_set();
@@ -81,7 +82,6 @@ public class MessageHandlerRank implements MessageHandler {
 
         rankService.getRank(name, message.getGroupId(), render);
 
-        result.setReply("努力查询中.");
-        return result;
+        return Tuple2.of(entity.text("努力查询中."), false);
     }
 }

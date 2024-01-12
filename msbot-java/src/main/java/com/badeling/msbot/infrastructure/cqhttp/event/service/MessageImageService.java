@@ -1,9 +1,11 @@
 package com.badeling.msbot.infrastructure.cqhttp.event.service;
 
 import com.badeling.msbot.infrastructure.config.ConstRepository;
+import com.badeling.msbot.infrastructure.cq.service.CqMessageBuildService;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.GetImageResult;
 import com.badeling.msbot.infrastructure.cqhttp.api.service.GetImageService;
 import com.badeling.msbot.infrastructure.util.ImgUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MessageImageService {
 
 
@@ -21,14 +24,10 @@ public class MessageImageService {
     private static final Pattern MSG_IMG_FILE_PATTERN = Pattern.compile("file=(\\S+?)[\\]|\\,]");
 
 
-    @Autowired
-    private GetImageService getImageService;
-
-    @Autowired
-    private ConstRepository constRepository;
-
-    @Autowired
-    private ImgUtil imgUtil;
+    private final GetImageService getImageService;
+    private final ConstRepository constRepository;
+    private final ImgUtil imgUtil;
+    private final CqMessageBuildService cqMessageBuildService;
 
     /**
      * 图片存本地,并且替换地址
@@ -74,9 +73,9 @@ public class MessageImageService {
                 try {
                     String imageName = UUID.randomUUID().toString().replaceAll("-", "") + ".jpg";
                     imgUtil.download(url, constRepository.getImageUrl() + "save/", imageName);
-                    sb.append("[CQ:image,file=save/");
-                    sb.append(imageName);
-                    sb.append("]");
+                    var e = cqMessageBuildService.create()
+                            .image("save/" + imageName);
+                    sb.append(e.getMessage());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

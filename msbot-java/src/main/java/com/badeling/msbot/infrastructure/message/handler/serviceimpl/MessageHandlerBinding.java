@@ -1,7 +1,9 @@
 package com.badeling.msbot.infrastructure.message.handler.serviceimpl;
 
+import com.badeling.msbot.common.Tuple2;
 import com.badeling.msbot.domain.message.group.entity.GroupMessagePostEntity;
-import com.badeling.msbot.domain.message.group.entity.GroupMessageResult;
+import com.badeling.msbot.infrastructure.cq.entity.CqMessageEntity;
+import com.badeling.msbot.infrastructure.cq.service.CqMessageBuildService;
 import com.badeling.msbot.infrastructure.dao.entity.RankInfo;
 import com.badeling.msbot.infrastructure.dao.repository.RankInfoRepository;
 import com.badeling.msbot.infrastructure.message.handler.service.MessageHandler;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class MessageHandlerBinding implements MessageHandler {
 
     private final RankInfoRepository rankInfoRepository;
+    private final CqMessageBuildService cqMessageBuildService;
 
 
     @Override
@@ -30,14 +33,13 @@ public class MessageHandlerBinding implements MessageHandler {
     }
 
     @Override
-    public GroupMessageResult handle(GroupMessagePostEntity message) {
-        GroupMessageResult replyMsg = new GroupMessageResult();
-        replyMsg.setAuto_escape(true);
+    public Tuple2<CqMessageEntity, Boolean> handle(GroupMessagePostEntity message) {
         String characterName = message.getRawMessage()
                 .substring(4)
                 .replace(" ", "");
-        if (characterName.equals("")) {
-            replyMsg.setReply("笨蛋，你得告诉我绑定的id啊");
+        var entity = cqMessageBuildService.create();
+        if (characterName.isEmpty()) {
+            entity.text("笨蛋，你得告诉我绑定的id啊");
         } else {
             String uid = String.valueOf(message.getUserId());
 
@@ -55,8 +57,7 @@ public class MessageHandlerBinding implements MessageHandler {
                     render = Integer.parseInt(characterName.substring(sharpIdx + 1));
                     characterName = characterName.substring(0, sharpIdx);
                 } catch (Exception ex) {
-                    replyMsg.setReply("#命令错误,");
-                    return replyMsg;
+                    return Tuple2.of(entity.text("#命令错误,"), false);
                 }
             }
 
@@ -66,8 +67,9 @@ public class MessageHandlerBinding implements MessageHandler {
             ri.setUser_name(characterName);
             ri.setRender_set(render);
             rankInfoRepository.save(ri);
-            replyMsg.setReply("绑定成功");
+            entity.text("绑定成功");
         }
-        return replyMsg;
+
+        return Tuple2.of(entity, false);
     }
 }

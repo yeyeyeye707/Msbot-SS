@@ -3,10 +3,10 @@ package com.badeling.msbot.domain.message.group.service;
 import com.badeling.msbot.domain.message.group.entity.GroupMessagePostEntity;
 import com.badeling.msbot.domain.message.group.entity.GroupMessageResult;
 import com.badeling.msbot.infrastructure.config.ConstRepository;
-import com.badeling.msbot.infrastructure.config.MsbotConst;
+import com.badeling.msbot.infrastructure.cq.mapper.CqMessageMapper;
+import com.badeling.msbot.infrastructure.cq.service.CqMessageBuildService;
 import com.badeling.msbot.infrastructure.message.handler.service.MessageHandler;
 import com.badeling.msbot.infrastructure.dao.repository.BlackListRepository;
-import com.badeling.msbot.infrastructure.message.handler.serviceimpl.MessageHandlerBotName;
 import com.badeling.msbot.infrastructure.repeat.event.RepeatEventListener;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +22,9 @@ public class GroupRequestService {
     private ConstRepository constRepository;
 
     private RepeatEventListener repeatEventListener;
+
+    private CqMessageBuildService cqMessageBuildService;
+    private CqMessageMapper cqMessageMapper;
 
 
     public GroupMessageResult handler(GroupMessagePostEntity request) {
@@ -40,19 +43,21 @@ public class GroupRequestService {
         GroupMessageResult result = null;
 
         if (msg.startsWith(constRepository.getBotName() + " -h")) {
-            result = new GroupMessageResult();
-            StringBuilder sb = new StringBuilder();
-            sb.append("├── 命令 {参数} [可选参数]\r\n")
-                    .append("│   └── 说明\r\n");
+            var e = cqMessageBuildService.create();
+            e.text("├── 命令 {参数} [可选参数]")
+                    .changeLine()
+                    .text("│   └── 说明")
+                    .changeLine();
+
             for (MessageHandler handler : messageHandlerArray) {
-                sb.append(handler.help());
+                e.text(handler.help());
             }
-            result.setReply(sb.toString());
-            return result;
+            return cqMessageMapper.toGroupMessageResult(e);
         } else {
             for (MessageHandler handler : messageHandlerArray) {
                 if (handler.canHandle(msg)) {
-                    result = handler.handle(request);
+                    var t2 = handler.handle(request);
+                    result = cqMessageMapper.toGroupMessageResult(t2);
                     break;
                 }
             }

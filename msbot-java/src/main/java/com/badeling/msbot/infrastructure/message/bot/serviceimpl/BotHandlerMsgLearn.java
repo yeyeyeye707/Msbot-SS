@@ -1,12 +1,16 @@
 package com.badeling.msbot.infrastructure.message.bot.serviceimpl;
 
+import com.badeling.msbot.common.Tuple2;
+import com.badeling.msbot.domain.message.exception.IlleagleUserException;
 import com.badeling.msbot.domain.message.group.entity.GroupMessagePostEntity;
+import com.badeling.msbot.infrastructure.cq.entity.CqMessageEntity;
+import com.badeling.msbot.infrastructure.cq.service.CqMessageBuildService;
 import com.badeling.msbot.infrastructure.cqhttp.event.service.MessageImageService;
 import com.badeling.msbot.infrastructure.dao.entity.Msg;
 import com.badeling.msbot.infrastructure.dao.repository.MsgRepository;
 import com.badeling.msbot.infrastructure.message.bot.service.BotHandler;
-import com.badeling.msbot.domain.message.group.entity.GroupMessageResult;
 import com.badeling.msbot.infrastructure.user.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,17 +18,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class BotHandlerMsgLearn implements BotHandler {
-    private static Pattern pattern = Pattern.compile("( {0,3})学习(.*)问(.+)答([\\s\\S]+)");
+    private static final Pattern pattern = Pattern.compile("( {0,3})学习(.*)问(.+)答([\\s\\S]+)");
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private MsgRepository msgRepository;
-
-    @Autowired
-    private MessageImageService messageImageService;
+    private final UserService userService;
+    private final MsgRepository msgRepository;
+    private final MessageImageService messageImageService;
+    private final CqMessageBuildService cqMessageBuildService;
 
     @Override
     public Pattern getPattern() {
@@ -44,15 +45,9 @@ public class BotHandlerMsgLearn implements BotHandler {
     }
 
     @Override
-    public GroupMessageResult handler(GroupMessagePostEntity request, Matcher m) {
-//        System.out.println("adadasdasdsad");
-        GroupMessageResult result = new GroupMessageResult();
-        result.setAt_sender(true);
+    public Tuple2<CqMessageEntity, Boolean> handler(GroupMessagePostEntity request, Matcher m) throws IlleagleUserException {
 
-        if (!userService.aboveManager(request.getUserId())) {
-            result.setReply("宁是什么东西也配命令老娘？爬爬爬！");
-            return result;
-        }
+        userService.checkManager(request.getUserId());
 
         //处理问题和答案
         String question = m.group(m.groupCount() - 1);
@@ -60,10 +55,8 @@ public class BotHandlerMsgLearn implements BotHandler {
         question = question.replaceAll("\\s*", "");
         String ans = m.group(m.groupCount());
 
-        if ((question.contains("固定回复") || question.contains("随机回复"))
-                && !userService.isManager(request.getUserId())) {
-            result.setReply("需要超级管理员权限哦.");
-            return result;
+        if ((question.contains("固定回复") || question.contains("随机回复"))) {
+            userService.checkMaster(request.getUserId(), "需要超级管理员权限哦");
         }
         ans = messageImageService.saveImagesToLocal(ans);
 
@@ -81,7 +74,7 @@ public class BotHandlerMsgLearn implements BotHandler {
         }
         msgRepository.save(newMsg);
 
-        result.setReply("[CQ:image,file=img/record.gif]");
-        return result;
+        var entity = cqMessageBuildService.create();
+        return Tuple2.of(entity.image("img/record.gif"), true);
     }
 }

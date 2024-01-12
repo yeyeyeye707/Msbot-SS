@@ -1,5 +1,7 @@
 package com.badeling.msbot.infrastructure.official.service;
 
+import com.badeling.msbot.infrastructure.cq.entity.CqMessageEntity;
+import com.badeling.msbot.infrastructure.cq.service.CqMessageBuildService;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.GroupMsgList;
 import com.badeling.msbot.infrastructure.cqhttp.api.service.GroupMsgService;
 import com.badeling.msbot.infrastructure.dao.entity.OfficialNews;
@@ -8,9 +10,9 @@ import com.badeling.msbot.infrastructure.dao.repository.OfficialNewsListenerRepo
 import com.badeling.msbot.infrastructure.dao.repository.OfficialNewsRepository;
 import com.badeling.msbot.infrastructure.official.entity.NewsEntity;
 import com.badeling.msbot.infrastructure.util.ImgUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -24,43 +26,38 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class OfficialNewScheduledComponent {
-    private String url = "https://maplestory.nexon.net/news";
-    private Pattern ulPattern = Pattern.compile("<ul class=\"news-container rows\"([\\s\\S]*?)</ul>");
-    private Pattern liPattern = Pattern.compile("<li(.*?)</li>");
+    private final String url = "https://maplestory.nexon.net/news";
+    private final Pattern ulPattern = Pattern.compile("<ul class=\"news-container rows\"([\\s\\S]*?)</ul>");
+    private final Pattern liPattern = Pattern.compile("<li(.*?)</li>");
 
-    private Pattern imgPattern = Pattern.compile("<div class=\\\"photo(.*?)url\\((.*?)\\)");
-    private Pattern aPattern = Pattern.compile("<a href=\"(.*?)\">(.*?)</a>");
+    private final Pattern imgPattern = Pattern.compile("<div class=\\\"photo(.*?)url\\((.*?)\\)");
+    private final Pattern aPattern = Pattern.compile("<a href=\"(.*?)\">(.*?)</a>");
 
-    @Autowired
-    OfficialNewsRepository officialNewsRepository;
+    private final OfficialNewsRepository officialNewsRepository;
+    private final OfficialNewsListenerRepository officialNewsListenerRepository;
+    private final GroupMsgService groupMsgService;
+    private final ImgUtil imgUtil;
+    private final CqMessageBuildService cqMessageBuildService;
 
-    @Autowired
-    OfficialNewsListenerRepository officialNewsListenerRepository;
-
-    @Autowired
-    GroupMsgService groupMsgService;
-
-    @Autowired
-    ImgUtil imgUtil;
-
-//    @Scheduled(cron ="0 */5 * * * *")
+    //    @Scheduled(cron ="0 */5 * * * *")
     @Async
     public void check() {
 //        System.out.println("asdasdasdasdasdasdas");
         List<NewsEntity> webEntities = getNewEntitiesFromWeb();
 
-        if(webEntities.isEmpty()){
+        if (webEntities.isEmpty()) {
             return;
         }
 
         List<NewsEntity> needSend = filterNeedSend(webEntities);
-        if(needSend == null || needSend.isEmpty()){
-            return ;
+        if (needSend == null || needSend.isEmpty()) {
+            return;
         }
 
-        List<OfficialNewsListener> listeners =  officialNewsListenerRepository.getOfficialNewsListeners();
-        if(listeners.isEmpty()){
+        List<OfficialNewsListener> listeners = officialNewsListenerRepository.getOfficialNewsListeners();
+        if (listeners.isEmpty()) {
             return;
         }
 
@@ -68,31 +65,31 @@ public class OfficialNewScheduledComponent {
                 .map(OfficialNewsListener::getQq)
                 .toArray(Long[]::new);
 
-        if(gids == null || gids.length == 0){
+        if (gids == null || gids.length == 0) {
             return;
         }
 
         //群发内容
-        List<String> notices = new ArrayList<>();
+        List<CqMessageEntity> notices = new ArrayList<>();
         //完整保存
         List<OfficialNews> save = new ArrayList<>();
 
-        for(NewsEntity e: needSend){
+        for (NewsEntity e : needSend) {
             try {
-                StringBuilder sb = new StringBuilder();
-                sb.append("搞个大新闻!!!\r\n");
-                sb.append(e.getTitle()).append("\r\n");
-                if(e.getImgUrl() == null || e.getImgUrl().isEmpty()){
+                var cq = cqMessageBuildService.create();
+                cq.text("搞个大新闻!!!").changeLine();
+                cq.text(e.getTitle()).changeLine();
+                if (e.getImgUrl() == null || e.getImgUrl().isEmpty()) {
 
-                }else {
+                } else {
                     String path = imgUtil.saveTempImage(e.getImgUrl());
-                    sb.append("[CQ:image,file=").append(path).append("]\r\n");
+                    cq.image(path).changeLine();
                     e.setImgPath(path);
                 }
-                sb.append(e.getUrl());
-                notices.add(sb.toString());
+                cq.text(e.getUrl());
+                notices.add(cq);
                 save.add(e.createDAO());
-            }catch (Exception ig){
+            } catch (Exception ig) {
 
             }
         }
@@ -101,7 +98,7 @@ public class OfficialNewScheduledComponent {
         GroupMsgList msgList = new GroupMsgList();
         msgList.setGroup_id(gids);
         msgList.setAuto_escape(false);
-        msgList.setMessage(notices.stream().toArray(String[]::new));
+        msgList.setMessage(notices.stream().map(CqMessageEntity::getMessage).toArray(String[]::new));
 
         groupMsgService.sendGroupMsgList(msgList);
         officialNewsRepository.saveAll(save);
@@ -122,7 +119,7 @@ public class OfficialNewScheduledComponent {
 
             HttpURLConnection connection = (HttpURLConnection) _url.openConnection();
             connection.setDoOutput(true);
-            connection.setRequestMethod( "GET");
+            connection.setRequestMethod("GET");
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
             StringBuilder buffer = new StringBuilder();
@@ -130,9 +127,9 @@ public class OfficialNewScheduledComponent {
             while ((line = reader.readLine()) != null) {
                 buffer.append(line);
             }
-             content = buffer.toString();
+            content = buffer.toString();
 
-        }catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
             return webEntities;
         }
@@ -140,12 +137,12 @@ public class OfficialNewScheduledComponent {
 
         //找到新闻ul
         Matcher ulMatcher = ulPattern.matcher(content);
-        if(ulMatcher.find()){
+        if (ulMatcher.find()) {
 
             String ul = ulMatcher.group();
             Matcher liMatcher = liPattern.matcher(ul);
             //检查每个li
-            while(liMatcher.find()){
+            while (liMatcher.find()) {
 
                 String newsUrl = null;
                 String newsTitle = null;
@@ -153,17 +150,17 @@ public class OfficialNewScheduledComponent {
 
                 String li = liMatcher.group();
                 Matcher imgMatcher = imgPattern.matcher(li);
-                if(imgMatcher.find()){
+                if (imgMatcher.find()) {
                     newsImgUrl = imgMatcher.group(2);
                 }
 
                 Matcher aMatcher = aPattern.matcher(li);
 
-                while(aMatcher.find()){
-                    if(aMatcher.group(2).startsWith("<img")||aMatcher.group(2).equals("Read More")){
+                while (aMatcher.find()) {
+                    if (aMatcher.group(2).startsWith("<img") || aMatcher.group(2).equals("Read More")) {
 
-                    }else{
-                        newsUrl = "https://maplestory.nexon.net"+aMatcher.group(1);
+                    } else {
+                        newsUrl = "https://maplestory.nexon.net" + aMatcher.group(1);
                         newsTitle = (aMatcher.group(2));
                     }
                     li = li.substring(aMatcher.end());
@@ -173,7 +170,7 @@ public class OfficialNewScheduledComponent {
 //                    System.out.println(newsTitle);
 //                    System.out.println(newsImgUrl);
 //                    System.out.println(newsUrl);
-                NewsEntity e =new NewsEntity();
+                NewsEntity e = new NewsEntity();
                 e.setTitle(newsTitle);
                 e.setImgUrl(newsImgUrl);
                 e.setUrl(newsUrl);
@@ -189,19 +186,19 @@ public class OfficialNewScheduledComponent {
 
 
     //与数据库比较 找到需要发送的
-    private List<NewsEntity> filterNeedSend(List<NewsEntity> allEntities){
+    private List<NewsEntity> filterNeedSend(List<NewsEntity> allEntities) {
 
         List<String> titles = allEntities.stream()
                 .map(NewsEntity::getTitle)
                 .collect(Collectors.toList());
 
         List<String> sent = officialNewsRepository.findByTitle(titles);
-        if(sent.size() >= allEntities.size()){
+        if (sent.size() >= allEntities.size()) {
             return null;
         }
 
         return allEntities.stream()
-                .filter(e-> !sent.contains(e.getTitle()))
+                .filter(e -> !sent.contains(e.getTitle()))
                 .collect(Collectors.toList());
     }
 

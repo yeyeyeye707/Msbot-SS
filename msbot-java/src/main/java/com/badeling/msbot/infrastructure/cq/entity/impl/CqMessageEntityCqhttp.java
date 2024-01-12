@@ -69,6 +69,12 @@ public class CqMessageEntityCqhttp implements CqMessageEntity {
     }
 
     @Override
+    public CqMessageEntity notAutoEscape(){
+        autoEscape = false;
+        return this;
+    }
+
+    @Override
     public boolean isAutoEscape() {
         return autoEscape;
     }

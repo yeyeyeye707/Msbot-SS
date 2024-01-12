@@ -1,5 +1,6 @@
 package com.badeling.msbot.interfaces.facade;
 
+import com.badeling.msbot.infrastructure.cq.mapper.CqMessageMapper;
 import com.badeling.msbot.infrastructure.cqhttp.api.entity.GroupMsg;
 import com.badeling.msbot.infrastructure.cqhttp.api.service.GroupMsgService;
 import com.badeling.msbot.infrastructure.official.service.OfficialNewScheduledComponent;
@@ -22,6 +23,7 @@ public class CronController {
     private final OfficialNewScheduledComponent officialNewScheduledComponent;
     private final RepeatService repeatService;
     private final GroupMsgService groupMsgService;
+    private final CqMessageMapper cqMessageMapper;
 
     @GetMapping("news")
     public String news() {
@@ -37,12 +39,8 @@ public class CronController {
                 var _gid = Long.parseLong(gid);
                 //发送周报
                 var report = repeatService.getRepeatReport(_gid);
-
-                if (!StringUtil.isEmpty(report)) {
-                    var send = new GroupMsg();
-                    send.setGroup_id(_gid);
-                    send.setAuto_escape(false);
-                    send.setMessage(report);
+                var send = cqMessageMapper.toGroupMsg(report, _gid);
+                if (send != null) {
                     groupMsgService.sendGroupMsg(send);
                 }
             } catch (Exception ex) {

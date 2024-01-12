@@ -1,17 +1,24 @@
 package com.badeling.msbot.infrastructure.message.bot.serviceimpl;
 
+import com.badeling.msbot.common.Tuple2;
 import com.badeling.msbot.domain.message.group.entity.GroupMessagePostEntity;
-import com.badeling.msbot.domain.message.group.entity.GroupMessageResult;
+import com.badeling.msbot.infrastructure.cq.entity.CqMessageEntity;
+import com.badeling.msbot.infrastructure.cq.service.CqMessageBuildService;
 import com.badeling.msbot.infrastructure.message.bot.service.BotHandler;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class BotHandlerIgnore implements BotHandler {
-    private static Pattern pattern = Pattern.compile("^( *)无视( *)(\\d+)(.*)");
-    private static Pattern MODIFY_PATTERN = Pattern.compile("(\\+|\\-)(\\d+)");
+    private static final Pattern pattern = Pattern.compile("^( *)无视( *)(\\d+)(.*)");
+    private static final Pattern MODIFY_PATTERN = Pattern.compile("(\\+|\\-)(\\d+)");
+
+    private final CqMessageBuildService cqMessageBuildService;
 
     @Override
     public Pattern getPattern() {
@@ -19,19 +26,18 @@ public class BotHandlerIgnore implements BotHandler {
     }
 
     @Override
-    public String help(){
+    public String help() {
         return "│   ├── 无视 数字+/-数字[+/-数字...]\r\n" +
                 "│   │   └── 计算方式是作为不同项计算\r\n";
     }
 
     @Override
-    public int getOrder(){
+    public int getOrder() {
         return 1;
     }
 
     @Override
-    public GroupMessageResult handler(GroupMessagePostEntity request, Matcher m) {
-        GroupMessageResult result = new GroupMessageResult();
+    public Tuple2<CqMessageEntity, Boolean> handler(GroupMessagePostEntity request, Matcher m) {
         StringBuilder sb = new StringBuilder();
         try {
             double ign = Double.parseDouble(m.group(3)) / 100;
@@ -42,7 +48,7 @@ public class BotHandlerIgnore implements BotHandler {
             Matcher _m = MODIFY_PATTERN.matcher(modifyStr);
             while (_m.find()) {
                 double modify = Double.parseDouble(_m.group(2)) / 100;
-                if(modify > 0 && modify < 1){
+                if (modify > 0 && modify < 1) {
 
                     if ("+".equals(_m.group(1))) {
                         ign = 1 - (1 - ign) * (1 - modify);
@@ -61,8 +67,6 @@ public class BotHandlerIgnore implements BotHandler {
 //            System.out.println();
         }
 
-        result.setReply(sb.toString());
-
-        return result;
+        return Tuple2.of(cqMessageBuildService.create().text(sb.toString()), false);
     }
 }

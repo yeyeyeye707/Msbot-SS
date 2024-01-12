@@ -24,6 +24,9 @@ public interface CqMessageEntity {
     /** 换行 */
     CqMessageEntity changeLine();
 
+    /** autoEscape = false */
+    CqMessageEntity notAutoEscape();
+
     boolean isAutoEscape();
 
     String getMessage();
